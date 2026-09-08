@@ -28,13 +28,30 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   drawer behind the header's menu button, on every page.
 - **Where we are** — the Congregation's own foundations map with the interactive
   layer rebuilt in vanilla JS: 24 country markers at the coordinates measured
-  against the artwork, four cluster badges for countries too close to tap apart
-  (Mediterranean & Holy Land, Britain & Ireland, South-East Asia, Central
-  America), hover/tap highlight with a tooltip carrying the foundation year,
-  per-country zoom, drag-to-pan and double-tap-to-reset while zoomed, the
-  communities panel, the community sheet, and the region chips. Hit areas are
-  still sized from the nearest visible marker (12–44px) so no marker can swallow
-  a neighbour's tap; Palestine keeps its offset marker and leader line.
+  against the artwork, hover/tap highlight with a tooltip carrying the
+  foundation year, per-country zoom, drag-to-pan and double-tap-to-reset while
+  zoomed, the communities panel, the community sheet, and the region chips. Hit
+  areas are sized from the nearest visible marker (12–44px) so no marker can
+  swallow a neighbour's tap; Palestine keeps its offset marker and leader line.
+
+  **Grouping adapts to the map's width.** A country carries its own marker as
+  soon as its nearest neighbour is at least 26px away — the smallest hit box
+  worth calling individually clickable. Below that, a numbered badge stands in
+  for the countries still crowded, and its count and chooser list exactly those.
+  So a phone shows 9 markers and all four badges, as designed; a 1044px desktop
+  map shows 19 individual markers and keeps a single badge for the five that are
+  genuinely inseparable (Cyprus, Syria, Lebanon, Israel, Jordan — Lebanon and
+  Israel are 15px apart even there). Crowding is measured at world zoom, so the
+  set depends only on width, not on what is open; a resize that spreads an open
+  group apart returns to the world view rather than stranding its chooser. The
+  region chips stay the 44px path to every country at every width.
+
+  | map width | individual markers | group badges |
+  | --- | --- | --- |
+  | 390px (phone) | 9 | 4 |
+  | 684px | 13 | 3 |
+  | 968px | 17 | 2 |
+  | 1044px (desktop) | 19 | 1 |
 
 ## Deliberate differences from the design canvas
 

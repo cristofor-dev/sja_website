@@ -93,7 +93,45 @@
 
   var MAP_RATIO = 968 / 1625;
 
+  /* A country carries its own marker once its nearest neighbour is at least
+     this far away in screen pixels. 26px is the smallest hit box worth calling
+     individually clickable — below it the group badge stands in, and the region
+     chips under the map remain the 44px path to every country at every width. */
+  var UNGROUP_MIN_PX = 26;
+
   function has(name) { return (LOCATIONS[name] || []).length > 0; }
+
+  /* Which countries sit too close to a neighbour to carry their own marker.
+     Measured at world zoom, so the answer depends only on how wide the map is
+     drawn — not on what is currently selected, open or panned. That keeps the
+     set stable while a group is open, and makes it recompute on resize. */
+  function crowded() {
+    var w = state.mapW, h = w * MAP_RATIO;
+    var live = Object.keys(COUNTRY_POINTS).filter(has);
+    var pos = {};
+    live.forEach(function (name) {
+      var p = COUNTRY_POINTS[name];
+      var n = NUDGE[name];
+      pos[name] = n ? [p[0] + n[0] / w * 100, p[1] + n[1] / h * 100] : [p[0], p[1]];
+    });
+    var tight = {};
+    live.forEach(function (a) {
+      var nearest = Infinity;
+      live.forEach(function (b) {
+        if (a === b) return;
+        nearest = Math.min(nearest, Math.hypot((pos[a][0] - pos[b][0]) / 100 * w,
+                                               (pos[a][1] - pos[b][1]) / 100 * h));
+      });
+      if (nearest < UNGROUP_MIN_PX) tight[a] = true;
+    });
+    return tight;
+  }
+
+  /* the members a group's badge actually stands for: those still too crowded
+     to show a marker of their own */
+  function groupedMembers(c, tight) {
+    return c.members.filter(function (m) { return has(m) && tight[m]; });
+  }
 
   function regionOf(name) {
     for (var i = 0; i < REGIONS.length; i++) {
@@ -120,6 +158,7 @@
   var el = {};
   var pinEls = {};
   var badgeEls = {};
+  var badgeCountEls = {};
   var chipEls = {};
   var leaderEls = {};
   var drag = null;
@@ -151,6 +190,7 @@
      areas are sized against what is really there, never against hidden pins. */
   function geometry() {
     var v = view();
+    var tight = crowded();
     var w = state.mapW, h = w * MAP_RATIO;
     var at = function (x, y) { return [v.tx + v.s * x, v.ty + v.s * y]; };
     var onMap = function (xy) { return xy[0] > -3 && xy[0] < 103 && xy[1] > -3 && xy[1] < 103; };
@@ -162,16 +202,16 @@
       var n = NUDGE[name];
       var xy = n ? [truth[0] + n[0] / w * 100, truth[1] + n[1] / h * 100] : truth;
       var grouped = CLUSTER_OF[name];
-      var visible = onMap(xy) && (!grouped || state.selected === name || state.cluster === grouped);
+      var visible = onMap(xy) && (!grouped || !tight[name] || state.selected === name || state.cluster === grouped);
       list.push({ kind: 'pin', name: name, xy: xy, truth: truth, nudged: !!n, visible: visible });
     });
 
     CLUSTERS.forEach(function (c) {
       var xy = at(c.x, c.y);
-      var live = c.members.filter(has).length;
+      var stood = groupedMembers(c, tight);
       list.push({
-        kind: 'cluster', cluster: c, xy: xy, count: live,
-        visible: live > 0 && onMap(xy) && !state.selected && state.cluster !== c.key
+        kind: 'cluster', cluster: c, xy: xy, count: stood.length,
+        visible: stood.length > 1 && onMap(xy) && !state.selected && state.cluster !== c.key
       });
     });
 
@@ -187,7 +227,7 @@
       m.hit = Math.max(12, Math.min(44, nearest));
     });
 
-    return { v: v, list: list };
+    return { v: v, list: list, tight: tight };
   }
 
   /* ── actions ── */
@@ -275,18 +315,21 @@
     });
 
     CLUSTERS.forEach(function (c) {
-      var live = c.members.filter(has).length;
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'badge';
       btn.style.display = 'none';
-      btn.setAttribute('aria-label', c.label + ', ' + live + ' countries');
-      btn.innerHTML = '<span class="badge__count">' + live + '</span>';
+      /* the count is set on every render — how many countries the badge stands
+         for depends on the map's width */
+      var count = document.createElement('span');
+      count.className = 'badge__count';
+      btn.appendChild(count);
       btn.addEventListener('click', function () {
         if (!dragged) openCluster(c.key);
       });
       el.marks.appendChild(btn);
       badgeEls[c.key] = btn;
+      badgeCountEls[c.key] = count;
     });
 
     Object.keys(NUDGE).forEach(function (name) {
@@ -407,6 +450,12 @@
       node.style.height = hit + 'px';
       node.style.margin = (-hit / 2) + 'px 0 0 ' + (-hit / 2) + 'px';
 
+      if (m.kind === 'cluster') {
+        badgeCountEls[m.cluster.key].textContent = m.count;
+        node.setAttribute('aria-label', m.cluster.label + ', ' + m.count +
+          (m.count === 1 ? ' country' : ' countries'));
+      }
+
       if (m.kind === 'pin') {
         var active = state.hoverName === m.name || state.selected === m.name;
         node.classList.toggle('is-active', active);
@@ -446,21 +495,25 @@
       c.chip.style.background = on ? c.color : '';
     });
 
-    renderPanels();
+    renderPanels(g.tight);
   }
 
-  function renderPanels() {
-    var key = (state.selected || '') + '|' + (state.cluster || '');
+  function renderPanels(tight) {
+    /* the grouped set is part of the key: a resize can change which countries
+       a group still stands for, and the chooser has to follow */
+    var open = null;
+    if (!state.selected && state.cluster) {
+      CLUSTERS.forEach(function (c) { if (c.key === state.cluster) open = c; });
+    }
+    var key = (state.selected || '') + '|' + (state.cluster || '') + '|' +
+      (open ? groupedMembers(open, tight).join(',') : '');
     if (key === panelKey) return;
     panelKey = key;
 
     /* cluster chooser */
-    var cl = null;
-    if (!state.selected && state.cluster) {
-      CLUSTERS.forEach(function (c) { if (c.key === state.cluster) cl = c; });
-    }
+    var cl = open;
     if (cl) {
-      var live = cl.members.filter(has);
+      var live = groupedMembers(cl, tight);
       el.clusterTitle.textContent = cl.label;
       el.clusterCount.textContent = live.length + ' countries';
       el.clusterRows.innerHTML = '';
@@ -543,6 +596,19 @@
     var w = el.frame.clientWidth;
     if (w && w !== state.mapW) {
       state.mapW = w;
+      /* A group whose countries have spread apart at the new width no longer
+         has a badge, so an open chooser for it would be unreachable once
+         closed and would list fewer countries than it did. Return to the world
+         view instead of leaving it stranded. */
+      if (state.cluster) {
+        var open = null;
+        CLUSTERS.forEach(function (c) { if (c.key === state.cluster) open = c; });
+        if (open && groupedMembers(open, crowded()).length < 2) {
+          state.cluster = null;
+          state.hoverName = null;
+          state.pan = { x: 0, y: 0 };
+        }
+      }
       render();
     }
   }

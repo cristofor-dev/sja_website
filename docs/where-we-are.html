@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where we are — Sisters of Saint Joseph of the Apparition</title>
+<meta name="description" content="The Sisters of St Joseph of the Apparition are present in twenty-four countries across Europe, Africa, the Middle East, Asia, Oceania and Latin America.">
+<link rel="icon" href="assets/logo_sja.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="Where we are">
+
+<div class="screen">
+
+  <header class="bar">
+    <div class="bar__top">
+      <a class="bar__logo" href="index.html">
+        <img src="assets/logo_sja.png" alt="Sisters of Saint Joseph of the Apparition" width="52" height="52">
+      </a>
+      <a class="bar__title" href="index.html">Sisters of Saint Joseph<br>of the Apparition</a>
+      <button class="burger" type="button" id="navToggle" aria-label="Menu" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="drawer" id="siteNav" aria-label="Main navigation" hidden></nav>
+
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Home</a>
+    <span class="sep">»</span>
+    <span>Where we are</span>
+  </nav>
+
+  <div class="block block--tight">
+    <h1 class="title">Where we are</h1>
+    <div class="rule"></div>
+    <p>Today the Sisters are present in twenty-four countries across Europe, Africa, the Middle East, Asia, Oceania and Latin America. Tap a marker on the map — or a country below — to zoom in and see its communities. Where countries lie too close together to tap apart, one numbered marker stands for the group and opens the countries in it.</p>
+  </div>
+
+  <div class="card map-card">
+    <div class="map-frame" id="mapFrame">
+      <div class="map-zoom" id="mapZoom">
+        <img src="assets/world-map-foundations.png" alt="World map showing each country of the Congregation and the year of its first foundation" width="1625" height="968">
+      </div>
+      <svg class="map-leaders" id="mapLeaders" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="map-marks" id="mapMarks"></div>
+      <div class="map-tip" id="mapTip" hidden></div>
+    </div>
+    <div class="map-note">Each date is the year of the Congregation's first foundation in that country. Tap a marker to see the communities there today; when zoomed in, drag to move the map and double-tap to return to the world.</div>
+  </div>
+
+  <div class="card panel" id="clusterPanel" hidden>
+    <div class="panel__head">
+      <span class="panel__titles">
+        <span class="panel__title" id="clusterTitle"></span>
+        <span class="panel__count" id="clusterCount"></span>
+      </span>
+      <button class="panel__reset" type="button" data-reset-view>World map</button>
+    </div>
+    <div id="clusterRows"></div>
+  </div>
+
+  <div class="card panel" id="countryPanel" hidden>
+    <div class="panel__head">
+      <span class="panel__titles">
+        <span class="panel__title"><span id="countryTitle"></span><span class="panel__year" id="countryYear"></span></span>
+        <span class="panel__count" id="countryCount"></span>
+      </span>
+      <button class="panel__reset" type="button" data-reset-view>World map</button>
+    </div>
+    <div id="countryRows"></div>
+  </div>
+
+  <div class="card">
+    <div class="card__subhead">Regions of presence</div>
+    <div id="regionList"></div>
+  </div>
+
+  <footer class="foot">
+    <div class="foot__name">Sisters of Saint Joseph<br>of the Apparition</div>
+    <div class="foot__links" data-footer-links></div>
+    <div class="foot__legal">Copyright © 2026 Sisters of Saint Joseph of the Apparition</div>
+  </footer>
+
+</div>
+
+<div class="sheet" id="communitySheet" role="dialog" aria-modal="true" aria-labelledby="sheetName" hidden>
+  <div class="sheet__inner">
+    <div class="sheet__head">
+      <span class="sheet__titles">
+        <span class="sheet__name" id="sheetName"></span>
+        <span class="sheet__meta" id="sheetMeta"></span>
+      </span>
+      <button class="sheet__close" type="button" id="sheetClose" aria-label="Close">×</button>
+    </div>
+    <div class="sheet__photo" id="sheetPhoto"></div>
+    <div class="sheet__body">
+      <p id="sheetIntro"></p>
+      <div class="sheet__pending">Description to be supplied by the Congregation — ministries, the year the community was founded, and the Sisters' presence today.</div>
+      <span class="is-pending" title="This page has not been built yet">Contact this community</span>
+    </div>
+  </div>
+</div>
+
+<script src="js/site.js"></script>
+<script src="js/map.js"></script>
+</body>
+</html>

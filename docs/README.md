@@ -1,11 +1,11 @@
 # Sisters of St Joseph of the Apparition — website
 
-A plain static site built from the design in `../sja_website_design/SJA Mobile.dc.html`.
+A plain static site built from the design in `../SJA Mobile.dc.html`.
 No build step, no dependencies: open `index.html` or drop the folder on any host
 (GitHub Pages, Netlify, ordinary shared hosting).
 
 ```
-site/
+docs/
   index.html          Home
   congregation.html   Who we are » Congregation
   where-we-are.html   Where we are — interactive foundations map
@@ -65,7 +65,7 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   (from the design's 1900x992 PNG, 3.2MB). The hero renders at most 640px wide,
   so 1280px still covers 2x displays. Re-encode with:
   `cwebp -q 85 -resize 1280 0 -m 6 -sharp_yuv <source>.png -o hero-generalate-garden.webp`
-  (`brew install webp`). The original PNG remains in `../sja_website_design/assets/`.
+  (`brew install webp`). The original PNG remains in `../assets/`.
 - `assets/world-map-foundations.png` — 1625x968, quantized to a 256-colour
   palette with `pngquant`, 414KB (was 1013KB). It stays a PNG rather than WebP
   because the artwork carries fine text (country names and foundation years)

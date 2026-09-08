@@ -38,9 +38,16 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
 
 ## Deliberate differences from the design canvas
 
-- **Responsive** — the design draws 430px screens. The site renders exactly that
-  on phones; from 700px up the column widens to 640px and centres. No desktop
-  layout was invented.
+- **Responsive** — the design draws 430px screens. Phones get exactly that.
+  From 700px the column widens to 720px; from 1024px it widens to 1100px and
+  the sections use the width: on the home page the Welcome text sits beside the
+  foundress card, Explore becomes two columns and the news becomes three cards
+  abreast. Source order is unchanged, so the phone layout still shows the
+  portrait between the quote and the button — only the desktop grid moves it.
+  Text-led content (the Congregation page, the map intro, the panels and the
+  region list) carries the `wrap` class and centres at 680px, about 72
+  characters a line, rather than stretching across the full width. The header,
+  hero, world map and footer span the whole column.
 - **The "Menu" screen** is the drawer, opened by the header button, rather than a
   separate page.
 - **Search** submits to a Google site-search for `stjoseph-apparition.org`, since

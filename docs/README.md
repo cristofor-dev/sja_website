@@ -127,12 +127,16 @@ site must be served from a URL ending in a slash. A host that serves `/docs`
 without redirecting to `/docs/` makes the browser resolve every asset against
 the domain root, and the page arrives as unstyled HTML with broken images.
 
-- **Vercel** — the cleanest setup is Settings → Build & Deployment → *Root
-  Directory* = `docs`, which serves the site at the domain root and deploys
-  only this folder. Without that, the `vercel.json` at the repository root
-  supplies `trailingSlash: true` (so `/docs` redirects to `/docs/`) and sends
-  `/` to `/docs/`. If you do set the Root Directory, that file stops being read
-  and can be deleted.
+- **Vercel** — the project's *Root Directory* (Settings → Build & Deployment)
+  is set to `docs`, so the site is served at the domain root and only this
+  folder is deployed. Vercel reads its configuration from the root directory,
+  which is why `vercel.json` lives here rather than beside the design files; a
+  copy at the repository root would be ignored entirely.
+
+  That config carries only the redirects that keep the earlier `/docs/...`
+  links working, since the site used to be served from that path. They are
+  temporary (307) rather than permanent redirects, so nothing sticks in browser
+  caches if the Root Directory is ever moved back.
 - **GitHub Pages** — not enabled. Settings → Pages → Source "Deploy from a
   branch" → branch `main`, folder `/docs` → Save. It then serves at
   <https://cristofor-dev.github.io/sja_website/>, with the trailing slash

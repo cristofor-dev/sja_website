@@ -96,6 +96,20 @@ This folder is `docs/` on `main` in `cristofor-dev/sja_website`. The design it w
 built from (`SJA Mobile.dc.html`, `CHANGELOG.md`, `assets/`, `uploads/`) stays at
 the repository root.
 
-GitHub Pages is **not** enabled. To publish the site: repository Settings →
-Pages → Source "Deploy from a branch" → branch `main`, folder `/docs` → Save.
-It then serves at <https://cristofor-dev.github.io/sja_website/>.
+## Hosting
+
+The pages use **relative** asset paths (`css/style.css`, `assets/...`), so the
+site must be served from a URL ending in a slash. A host that serves `/docs`
+without redirecting to `/docs/` makes the browser resolve every asset against
+the domain root, and the page arrives as unstyled HTML with broken images.
+
+- **Vercel** — the cleanest setup is Settings → Build & Deployment → *Root
+  Directory* = `docs`, which serves the site at the domain root and deploys
+  only this folder. Without that, the `vercel.json` at the repository root
+  supplies `trailingSlash: true` (so `/docs` redirects to `/docs/`) and sends
+  `/` to `/docs/`. If you do set the Root Directory, that file stops being read
+  and can be deleted.
+- **GitHub Pages** — not enabled. Settings → Pages → Source "Deploy from a
+  branch" → branch `main`, folder `/docs` → Save. It then serves at
+  <https://cristofor-dev.github.io/sja_website/>, with the trailing slash
+  handled automatically.

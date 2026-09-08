@@ -53,6 +53,16 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   | 968px | 17 | 2 |
   | 1044px (desktop) | 19 | 1 |
 
+  **Selecting a country brings the map to the top of the viewport**, since the
+  communities panel opens below the map and would otherwise start off the
+  bottom of a phone screen. It runs for markers, group chooser rows and region
+  chips alike, skips the scroll when the page is already aligned, leaves the
+  page alone when returning to the world view, and jumps instantly instead of
+  animating under `prefers-reduced-motion`. On a 390px phone this leaves room
+  for about seven community rows. On desktop the map is 622px tall, so on a
+  short laptop screen the panel header can still sit below the fold — placing
+  the panel beside the map at that width would fix it properly.
+
 ## Deliberate differences from the design canvas
 
 - **Responsive** — the design draws 430px screens. Phones get exactly that.

@@ -232,6 +232,30 @@
 
   /* ── actions ── */
 
+  /* The communities panel opens below the map, so on a phone it starts off the
+     bottom of the screen. Bring the map card to the top of the viewport, which
+     leaves the most room underneath it for the panel. Selection can be made
+     from a marker, a group chooser row or a region chip far down the page, so
+     this runs for all of them. */
+  var REVEAL_GAP = 8;
+
+  function revealMap() {
+    var card = el.frame.parentNode;
+    if (!card || !card.getBoundingClientRect || !window.scrollTo) return;
+    var y = card.getBoundingClientRect().top + (window.pageYOffset || 0) - REVEAL_GAP;
+    if (y < 0) y = 0;
+    /* already there — don't nudge the page for nothing */
+    if (Math.abs((window.pageYOffset || 0) - y) < 4) return;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce) {
+      try {
+        window.scrollTo({ top: y, behavior: 'smooth' });
+        return;
+      } catch (e) { /* older browsers take the two-argument form only */ }
+    }
+    window.scrollTo(0, y);
+  }
+
   function selectCountry(name) {
     if (!COUNTRY_POINTS[name]) return;
     state.selected = name;
@@ -240,6 +264,7 @@
     state.cluster = null;
     state.pan = { x: 0, y: 0 };
     render();
+    revealMap();
   }
 
   function resetView() {
@@ -258,6 +283,7 @@
     state.community = null;
     state.pan = { x: 0, y: 0 };
     render();
+    revealMap();
   }
 
   function focusCountry(name) {

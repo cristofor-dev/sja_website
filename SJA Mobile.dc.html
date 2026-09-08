@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #eef2f6; -webkit-font-smoothing: antialiased; }
+  a { color: #046bd2; }
+  a:hover { color: #045cb4; }
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<section style="display:flex; flex-direction:column; gap:28px; padding:32px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+
+  <div style="display:flex; align-items:baseline; gap:14px;">
+    <span style="font-family:'Inknut Antiqua',serif; font-size:20px; color:#004a9b;">Sisters of St Joseph of the Apparition — mobile-first recreation</span>
+    <span style="font-size:13px; color:#475569; letter-spacing:.04em;">1a · classic UI, current colours</span>
+  </div>
+
+  <div id="1a" style="display:flex; flex-wrap:wrap; gap:28px; align-items:flex-start;">
+
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#004a9b; font-weight:600;">Home</div>
+      <div data-screen-label="Home" style="width:430px; background:linear-gradient(180deg,#fafafa 0%,#b0d6f7 100%); box-shadow:0 24px 60px -18px rgba(0,49,95,.45), 0 8px 20px rgba(15,23,42,.10); overflow:hidden;">
+
+        <div style="background:#ffffff; position:relative; z-index:2; box-shadow:0 10px 24px -10px rgba(0,49,95,.45);">
+          <div style="display:flex; align-items:center; gap:12px; padding:10px 14px;">
+            <a href="#1a" style="flex:0 0 auto;"><img src="assets/logo_sja.png" alt="Sisters of Saint Joseph of the Apparition" width="52" height="52" style="display:block; width:52px; height:52px; object-fit:contain;"></a>
+            <a href="#1a" style="flex:1 1 auto; text-decoration:none; font-family:'Inknut Antiqua',serif; font-size:15px; line-height:1.35; color:#004a9b;">Sisters of Saint Joseph<br>of the Apparition</a>
+            <button type="button" onClick="{{ toggleMenu }}" aria-label="Menu" style="flex:0 0 auto; width:46px; height:46px; display:flex; flex-direction:column; justify-content:center; gap:5px; padding:0 11px; background:#004a9b; border:0; border-radius:8px; cursor:pointer; box-shadow:0 8px 18px -8px rgba(0,49,95,.8);">
+              <span style="display:block; height:2px; background:#ffffff;"></span>
+              <span style="display:block; height:2px; background:#ffffff;"></span>
+              <span style="display:block; height:2px; background:#ffffff;"></span>
+            </button>
+          </div>
+          <div style="display:flex; align-items:stretch; background:#f4f9fe;">
+            <div style="flex:1 1 auto; display:flex; align-items:center; gap:8px; padding:0 12px;">
+              <svg viewBox="-893 477 142 142" width="14" height="14" aria-hidden="true" style="fill:#004a9b; flex:0 0 auto;"><path d="M-787.4,568.7h-6.3l-2.4-2.4c7.9-8.7,12.6-20.5,12.6-33.1c0-28.4-22.9-51.3-51.3-51.3c-28.4,0-51.3,22.9-51.3,51.3c0,28.4,22.9,51.3,51.3,51.3c12.6,0,24.4-4.7,33.1-12.6l2.4,2.4v6.3l39.4,39.4l11.8-11.8L-787.4,568.7L-787.4,568.7z M-834.7,568.7c-19.7,0-35.5-15.8-35.5-35.5c0-19.7,15.8-35.5,35.5-35.5c19.7,0,35.5,15.8,35.5,35.5C-799.3,553-815,568.7-834.7,568.7L-834.7,568.7z"></path></svg>
+              <input type="search" placeholder="Search the site…" style="flex:1 1 auto; min-width:0; height:44px; border:0; background:transparent; font-size:15px; color:#1e293b; outline:none;">
+            </div>
+            <div style="flex:0 0 auto; display:flex; align-items:center;">
+              <span style="display:block; padding:0 12px; line-height:44px; font-size:13px; font-weight:600; letter-spacing:.06em; color:#ffffff; background:#004a9b;">EN</span>
+              <a href="#1a" style="display:block; padding:0 12px; line-height:44px; font-size:13px; letter-spacing:.06em; color:#004a9b; text-decoration:none;">FR</a>
+            </div>
+          </div>
+        </div>
+
+        <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+          <nav style="background:linear-gradient(180deg,#b0d6f7 0%,#fafafa 100%); box-shadow:0 16px 30px -16px rgba(0,49,95,.5);">
+            <sc-for list="{{ nav }}" as="item" hint-placeholder-count="8">
+              <div style="margin:0 0 6px;">
+                <div style="display:flex; align-items:stretch;">
+                  <a href="#1a" style="flex:1 1 auto; padding:14px 16px; font-family:'Inknut Antiqua',serif; font-size:15px; color:#004a9b; text-decoration:none;">{{ item.label }}</a>
+                  <sc-if value="{{ item.hasChildren }}" hint-placeholder-val="{{ true }}">
+                    <button type="button" onClick="{{ item.toggle }}" aria-label="Open section" style="flex:0 0 auto; width:52px; border:0; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center;">
+                      <svg viewBox="57 35.171 26 16.043" width="15" height="10" aria-hidden="true" style="fill:#004a9b; transform:{{ item.arrowTransform }};"><path d="M57.5,38.193l12.5,12.5l12.5-12.5l-2.5-2.5l-10,10l-10-10L57.5,38.193z"></path></svg>
+                    </button>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ item.expanded }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#ffffff; box-shadow:inset 0 8px 14px -12px rgba(0,49,95,.5);">
+                    <sc-for list="{{ item.children }}" as="child" hint-placeholder-count="3">
+                      <a href="#1a" style="display:block; padding:13px 16px 13px 34px; font-size:15px; color:#004aad; text-decoration:none;">{{ child }}</a>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </nav>
+        </sc-if>
+
+        <figure style="position:relative; margin:0; background:#004a9b;">
+          <img src="assets/hero-generalate-garden.png" alt="The garden of the Generalate in Rome, with the dome of St Peter's beyond" style="display:block; width:100%; height:auto;">
+          <figcaption style="padding:10px 18px; font-size:13px; line-height:1.5; color:#ffffff; background:#004a9b;">The garden of the Generalate, Rome</figcaption>
+        </figure>
+
+        <div style="padding:22px 18px 24px;">
+          <h1 style="margin:0 0 4px; font-family:'Inknut Antiqua',serif; font-size:23px; line-height:1.4; font-weight:400; color:#004aad;">Welcome</h1>
+          <div style="width:64px; height:2px; background:#75c2ec; margin:0 0 14px;"></div>
+          <p style="margin:0 0 14px; font-size:16px; line-height:1.65; color:#1e293b; text-wrap:pretty;">The Sisters of St Joseph of the Apparition are a missionary Congregation founded by St Emilie De Vialar in Gaillac, France in 1832. Today the Sisters are present in twenty-four countries.</p>
+          <blockquote style="margin:0; padding:2px 0 2px 16px; border-left:5px solid rgba(0,0,0,.05); font-size:16px; line-height:1.6; color:#000062;">
+            <p style="margin:0 0 6px;">“Go with what you have and will receive, do all the good you can.”</p>
+            <cite style="font-style:normal; font-size:13px; color:#334155;">St. Emilie de Vialar</cite>
+          </blockquote>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-top:22px; padding:22px 18px; background:#ffffff; border-radius:10px; box-shadow:0 14px 30px -18px rgba(0,49,95,.5);">
+            <div style="width:168px; height:214px; padding:9px; border-radius:50%; background:#f6f1e4; box-shadow:0 18px 34px -16px rgba(0,49,95,.55), inset 0 0 0 6px #ffffff, inset 0 0 0 9px #b0d6f7;">
+              <img src="assets/emilie-portrait-oval.png" alt="Saint Emilie de Vialar, foundress" style="display:block; width:100%; height:100%; object-fit:cover; object-position:50% 18%; border-radius:50%; box-shadow:inset 0 0 18px rgba(0,49,95,.35);">
+            </div>
+            <span style="font-family:'Inknut Antiqua',serif; font-size:16px; line-height:1.4; color:#004a9b; text-align:center;">St Emilie de Vialar</span>
+            <span style="font-size:14px; line-height:1.55; color:#475569; text-align:center;">Foundress of the Congregation, Gaillac, France — 1832.</span>
+            <a href="#1a" style="font-size:14px; color:#046bd2; text-decoration:underline;">Her life and mission</a>
+          </div>
+          <a href="#1a" style="display:inline-block; margin-top:18px; padding:13px 26px; background:#046bd2; border:0; border-radius:8px; box-shadow:0 12px 24px -10px rgba(4,107,210,.8); color:#ffffff; font-size:15px; font-weight:500; text-decoration:none;">Read about the Congregation</a>
+        </div>
+
+        <div style="margin:0 0 4px; background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 16px 34px -18px rgba(0,49,95,.5);">
+          <h2 style="margin:0; padding:14px 18px; font-family:'Inknut Antiqua',serif; font-size:17px; font-weight:400; color:#ffffff; background:#004a9b;">Explore</h2>
+          <sc-for list="{{ quickLinks }}" as="q" hint-placeholder-count="6">
+            <a href="#1a" style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 18px; text-decoration:none; box-shadow:inset 0 -10px 14px -14px rgba(0,49,95,.35);">
+              <span style="display:flex; flex-direction:column; gap:3px;">
+                <span style="font-family:'Inknut Antiqua',serif; font-size:15px; color:#004a9b;">{{ q.title }}</span>
+                <span style="font-size:13px; line-height:1.45; color:#475569;">{{ q.note }}</span>
+              </span>
+              <svg viewBox="57 35.171 26 16.043" width="14" height="9" aria-hidden="true" style="flex:0 0 auto; fill:#75c2ec; transform:rotate(-90deg);"><path d="M57.5,38.193l12.5,12.5l12.5-12.5l-2.5-2.5l-10,10l-10-10L57.5,38.193z"></path></svg>
+            </a>
+          </sc-for>
+        </div>
+
+        <div style="padding:22px 18px 26px;">
+          <h2 style="margin:0 0 4px; font-family:'Inknut Antiqua',serif; font-size:19px; font-weight:400; color:#004aad;">Latest news</h2>
+          <div style="width:64px; height:2px; background:#75c2ec; margin:0 0 16px;"></div>
+          <sc-for list="{{ news }}" as="n" hint-placeholder-count="3">
+            <div style="padding:14px 16px; margin:0 0 12px; background:#ffffff; border-radius:10px; box-shadow:0 12px 26px -16px rgba(0,49,95,.5);">
+              <div style="font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#046bd2; font-weight:600; margin-bottom:5px;">{{ n.date }}</div>
+              <a href="#1a" style="font-family:'Inknut Antiqua',serif; font-size:16px; line-height:1.45; color:#004aad; text-decoration:none;">{{ n.title }}</a>
+            </div>
+          </sc-for>
+          <a href="#1a" style="font-size:15px; color:#046bd2; text-decoration:underline;">All news and bulletins</a>
+        </div>
+
+        <div style="background:#004a9b; color:#ffffff; padding:22px 18px 26px;">
+          <div style="font-family:'Inknut Antiqua',serif; font-size:15px; line-height:1.45; margin-bottom:14px;">Sisters of Saint Joseph<br>of the Apparition</div>
+          <div style="display:flex; flex-wrap:wrap; gap:10px 22px; margin-bottom:18px;">
+            <sc-for list="{{ footerLinks }}" as="f" hint-placeholder-count="6">
+              <a href="#1a" style="font-size:14px; color:#b0d6f7; text-decoration:none;">{{ f }}</a>
+            </sc-for>
+          </div>
+          <div style="padding-top:14px; box-shadow:inset 0 10px 16px -14px rgba(0,0,0,.6); font-size:12px; color:#b0d6f7;">Copyright © 2026 Sisters of Saint Joseph of the Apparition</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#004a9b; font-weight:600;">Menu — full navigation</div>
+      <div data-screen-label="Menu" style="width:430px; background:linear-gradient(180deg,#fafafa 0%,#b0d6f7 100%); box-shadow:0 24px 60px -18px rgba(0,49,95,.45), 0 8px 20px rgba(15,23,42,.10);">
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:#ffffff; position:relative; z-index:2; box-shadow:0 10px 24px -10px rgba(0,49,95,.45);">
+          <img src="assets/logo_sja.png" alt="" width="52" height="52" style="display:block; width:52px; height:52px; object-fit:contain;">
+          <span style="flex:1 1 auto; font-family:'Inknut Antiqua',serif; font-size:15px; line-height:1.35; color:#004a9b;">Sisters of Saint Joseph<br>of the Apparition</span>
+          <span style="flex:0 0 auto; width:46px; height:46px; display:flex; align-items:center; justify-content:center; background:#004a9b; color:#ffffff; font-size:22px; line-height:1;">×</span>
+        </div>
+        <nav style="background:linear-gradient(180deg,#b0d6f7 0%,#fafafa 100%);">
+          <sc-for list="{{ navFull }}" as="item" hint-placeholder-count="8">
+            <div style="margin:0 0 6px;">
+              <div style="display:flex; align-items:stretch; background:{{ item.rowBg }};">
+                <a href="#1a" style="flex:1 1 auto; padding:14px 16px; font-family:'Inknut Antiqua',serif; font-size:15px; color:{{ item.rowColor }}; text-decoration:none;">{{ item.label }}</a>
+                <sc-if value="{{ item.hasChildren }}" hint-placeholder-val="{{ true }}">
+                  <span style="flex:0 0 auto; width:52px; display:flex; align-items:center; justify-content:center;">
+                    <svg viewBox="57 35.171 26 16.043" width="15" height="10" aria-hidden="true" style="fill:{{ item.rowColor }}; transform:{{ item.arrowTransform }};"><path d="M57.5,38.193l12.5,12.5l12.5-12.5l-2.5-2.5l-10,10l-10-10L57.5,38.193z"></path></svg>
+                  </span>
+                </sc-if>
+              </div>
+              <sc-if value="{{ item.expanded }}" hint-placeholder-val="{{ true }}">
+                <div style="background:#ffffff; box-shadow:inset 0 8px 14px -12px rgba(0,49,95,.5);">
+                  <sc-for list="{{ item.children }}" as="child" hint-placeholder-count="3">
+                    <a href="#1a" style="display:block; padding:13px 16px 13px 34px; font-size:15px; color:#004aad; text-decoration:none;">{{ child }}</a>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </nav>
+        <div style="display:flex; align-items:center; gap:10px; padding:16px; font-size:14px; color:#004a9b;">
+          <span>Language:</span>
+          <span style="padding:6px 12px; background:#004a9b; color:#ffffff;">English</span>
+          <a href="#1a" style="padding:6px 12px; background:#ffffff; border-radius:6px; color:#004a9b; text-decoration:none; box-shadow:0 6px 14px -6px rgba(0,49,95,.55);">Français</a>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#004a9b; font-weight:600;">Inner page — Congregation</div>
+      <div data-screen-label="Congregation" style="width:430px; background:linear-gradient(180deg,#fafafa 0%,#b0d6f7 100%); box-shadow:0 24px 60px -18px rgba(0,49,95,.45), 0 8px 20px rgba(15,23,42,.10);">
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:#ffffff; position:relative; z-index:2; box-shadow:0 10px 24px -10px rgba(0,49,95,.45);">
+          <img src="assets/logo_sja.png" alt="" width="52" height="52" style="display:block; width:52px; height:52px; object-fit:contain;">
+          <span style="flex:1 1 auto; font-family:'Inknut Antiqua',serif; font-size:15px; line-height:1.35; color:#004a9b;">Sisters of Saint Joseph<br>of the Apparition</span>
+          <span style="flex:0 0 auto; width:46px; height:46px; display:flex; flex-direction:column; justify-content:center; gap:5px; padding:0 11px; background:#004a9b; box-sizing:border-box;">
+            <span style="display:block; height:2px; background:#ffffff;"></span>
+            <span style="display:block; height:2px; background:#ffffff;"></span>
+            <span style="display:block; height:2px; background:#ffffff;"></span>
+          </span>
+        </div>
+
+        <nav aria-label="Breadcrumb" style="display:flex; align-items:center; gap:6px; padding:11px 16px; background:#f4f9fe; font-size:13px; color:#334155;">
+          <a href="#1a" style="color:#046bd2; text-decoration:none;">Home</a>
+          <span style="color:#75c2ec;">»</span>
+          <a href="#1a" style="color:#046bd2; text-decoration:none;">Who we are</a>
+          <span style="color:#75c2ec;">»</span>
+          <span>Congregation</span>
+        </nav>
+
+        <div style="padding:22px 18px 8px;">
+          <h1 style="margin:0 0 4px; font-family:'Inknut Antiqua',serif; font-size:23px; line-height:1.4; font-weight:400; color:#004aad;">Congregation</h1>
+          <div style="width:64px; height:2px; background:#75c2ec; margin:0 0 16px;"></div>
+          <img src="assets/congregation.jpg" alt="Sisters of the Congregation" style="display:block; width:100%; height:auto; background:#ffffff; border-radius:10px; margin:0 0 18px; box-shadow:0 20px 40px -20px rgba(0,49,95,.6);">
+          <p style="margin:0 0 14px; font-size:16px; line-height:1.65; color:#1e293b; text-wrap:pretty;">The Sisters of St Joseph of the Apparition are a missionary Congregation founded by St Emilie De Vialar in Gaillac France in 1832. At an early age Emilie was inspired to commit herself to God and became involved in works of charity in her home town.</p>
+          <p style="margin:0 0 18px; font-size:16px; line-height:1.65; color:#1e293b; text-wrap:pretty;">She was called to found a missionary work with her first adventure being to Algeria in 1835. Later she sent Sisters to distant countries. Today the Sisters are present in twenty-four countries.</p>
+          <figure style="margin:0 0 20px;">
+            <img src="assets/angel.jpg" alt="The apparition of the angel to Saint Joseph" style="display:block; width:100%; height:auto; background:#ffffff; border-radius:10px; box-shadow:0 20px 40px -20px rgba(0,49,95,.6);">
+            <figcaption style="margin-top:8px; font-size:13px; line-height:1.5; color:#334155;">The apparition of the angel to Saint Joseph — the mystery that gives the Congregation its name.</figcaption>
+          </figure>
+          <blockquote style="margin:0 0 20px; padding:2px 0 2px 16px; border-left:5px solid rgba(0,0,0,.05); font-size:16px; line-height:1.6; color:#000062;">
+            <p style="margin:0 0 6px;">“Go with what you have and will receive, do all the good you can.”</p>
+            <cite style="font-style:normal; font-size:13px; color:#334155;">St. Emilie de Vialar — Testimony of Sr Cyprienne to the Sisters departing for Burma, Picard p.241</cite>
+          </blockquote>
+        </div>
+
+        <div style="margin:0 18px 24px; background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 16px 34px -18px rgba(0,49,95,.5);">
+          <div style="padding:12px 16px; background:#f4f9fe; font-family:'Inknut Antiqua',serif; font-size:15px; color:#004a9b;">More in Who we are</div>
+          <a href="#1a" style="display:flex; align-items:center; justify-content:space-between; padding:15px 16px; font-size:15px; color:#004aad; text-decoration:none;">The Foundress St. Emilie<svg viewBox="57 35.171 26 16.043" width="14" height="9" aria-hidden="true" style="fill:#75c2ec; transform:rotate(-90deg);"><path d="M57.5,38.193l12.5,12.5l12.5-12.5l-2.5-2.5l-10,10l-10-10L57.5,38.193z"></path></svg></a>
+          <a href="#1a" style="display:flex; align-items:center; justify-content:space-between; padding:15px 16px; font-size:15px; color:#004aad; text-decoration:none;">Charism and Spirituality<svg viewBox="57 35.171 26 16.043" width="14" height="9" aria-hidden="true" style="fill:#75c2ec; transform:rotate(-90deg);"><path d="M57.5,38.193l12.5,12.5l12.5-12.5l-2.5-2.5l-10,10l-10-10L57.5,38.193z"></path></svg></a>
+        </div>
+
+        <div style="background:#004a9b; color:#ffffff; padding:22px 18px 26px;">
+          <div style="font-family:'Inknut Antiqua',serif; font-size:15px; line-height:1.45; margin-bottom:14px;">Sisters of Saint Joseph<br>of the Apparition</div>
+          <div style="display:flex; flex-wrap:wrap; gap:10px 22px; margin-bottom:18px;">
+            <sc-for list="{{ footerLinks }}" as="f" hint-placeholder-count="6">
+              <a href="#1a" style="font-size:14px; color:#b0d6f7; text-decoration:none;">{{ f }}</a>
+            </sc-for>
+          </div>
+          <div style="padding-top:14px; box-shadow:inset 0 10px 16px -14px rgba(0,0,0,.6); font-size:12px; color:#b0d6f7;">Copyright © 2026 Sisters of Saint Joseph of the Apparition</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:#004a9b; font-weight:600;">Inner page — Where we are (interactive map)</div>
+      <div data-screen-label="Where we are" style="position:relative; width:430px; background:linear-gradient(180deg,#fafafa 0%,#b0d6f7 100%); box-shadow:0 24px 60px -18px rgba(0,49,95,.45), 0 8px 20px rgba(15,23,42,.10);">
+        <sc-if value="{{ community }}" hint-placeholder-val="{{ false }}">
+          <div style="position:fixed; inset:0; z-index:1000; background:rgba(0,32,64,.55); display:flex; align-items:flex-end; justify-content:center;">
+            <div style="width:100%; max-width:430px; max-height:92vh; overflow:auto; background:#ffffff; border-radius:16px 16px 0 0; box-shadow:0 -20px 50px -12px rgba(0,49,95,.6);">
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:16px 18px; background:#004a9b; color:#ffffff; border-radius:16px 16px 0 0;">
+                <span style="flex:1 1 auto; display:flex; flex-direction:column; gap:3px;">
+                  <span style="font-family:'Inknut Antiqua',serif; font-size:18px; line-height:1.3;">{{ community }}</span>
+                  <span style="font-size:13px; color:#b0d6f7;">{{ communityMeta }}</span>
+                </span>
+                <button type="button" onClick="{{ closeCommunity }}" aria-label="Close" style="flex:0 0 auto; width:44px; height:44px; border:0; border-radius:8px; background:rgba(255,255,255,.16); color:#ffffff; font-size:22px; line-height:1; cursor:pointer;">×</button>
+              </div>
+              <div style="position:relative; width:100%; height:210px; background:#dce6f0;">
+                <image-slot id="{{ communitySlotId }}" shape="rect" placeholder="Drop a photo of this community"></image-slot>
+              </div>
+              <div style="padding:20px 18px 26px;">
+                <p style="margin:0 0 14px; font-size:16px; line-height:1.65; color:#1e293b; text-wrap:pretty;">{{ communityIntro }}</p>
+                <div style="padding:14px 16px; background:#f4f9fe; border-radius:10px; font-size:14px; line-height:1.6; color:#475569;">Description to be supplied by the Congregation — ministries, the year the community was founded, and the Sisters' presence today.</div>
+                <a href="#1a" style="display:inline-block; margin-top:18px; font-size:15px; color:#046bd2;">Contact this community</a>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; background:#ffffff; position:relative; z-index:2; box-shadow:0 10px 24px -10px rgba(0,49,95,.45);">
+          <img src="assets/logo_sja.png" alt="" width="52" height="52" style="display:block; width:52px; height:52px; object-fit:contain;">
+          <span style="flex:1 1 auto; font-family:'Inknut Antiqua',serif; font-size:15px; line-height:1.35; color:#004a9b;">Sisters of Saint Joseph<br>of the Apparition</span>
+          <span style="flex:0 0 auto; width:46px; height:46px; display:flex; flex-direction:column; justify-content:center; gap:5px; padding:0 11px; background:#004a9b; box-sizing:border-box;">
+            <span style="display:block; height:2px; background:#ffffff;"></span>
+            <span style="display:block; height:2px; background:#ffffff;"></span>
+            <span style="display:block; height:2px; background:#ffffff;"></span>
+          </span>
+        </div>
+
+        <nav aria-label="Breadcrumb" style="display:flex; align-items:center; gap:6px; padding:11px 16px; background:#f4f9fe; font-size:13px; color:#334155;">
+          <a href="#1a" style="color:#046bd2; text-decoration:none;">Home</a>
+          <span style="color:#75c2ec;">»</span>
+          <span>Where we are</span>
+        </nav>
+
+        <div style="padding:22px 18px 8px;">
+          <h1 style="margin:0 0 4px; font-family:'Inknut Antiqua',serif; font-size:23px; line-height:1.4; font-weight:400; color:#004aad;">Where we are</h1>
+          <div style="width:64px; height:2px; background:#75c2ec; margin:0 0 16px;"></div>
+          <p style="margin:0 0 18px; font-size:16px; line-height:1.65; color:#1e293b; text-wrap:pretty;">Today the Sisters are present in twenty-four countries across Europe, Africa, the Middle East, Asia, Oceania and Latin America. Tap a marker on the map — or a country below — to zoom in and see its communities. Where countries lie too close together to tap apart, one numbered marker stands for the group and opens the countries in it.</p>
+        </div>
+
+        <div style="margin:0 18px 18px; background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 16px 34px -18px rgba(0,49,95,.5);">
+          <div style="position:relative; overflow:hidden; background:#ffffff; touch-action:{{ mapTouch }}; cursor:{{ mapCursor }};" ref="{{ mapContainerRef }}" onPointerDown="{{ onMapPointerDown }}" onPointerMove="{{ onMapPointerMove }}" onPointerUp="{{ onMapPointerUp }}" onPointerCancel="{{ onMapPointerUp }}" onPointerLeave="{{ onMapPointerUp }}" onDoubleClick="{{ onMapDoubleClick }}">
+            <div style="position:relative; width:100%; transform:{{ mapTransform }}; transform-origin:0 0; transition:{{ mapTransition }}; pointer-events:none;">
+              <img src="assets/world-map-foundations.png" alt="World map showing each country of the Congregation and the year of its first foundation" style="display:block; width:100%; height:auto;">
+            </div>
+            <sc-for list="{{ leaders }}" as="l" hint-placeholder-count="1">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; overflow:visible;"><line x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}" stroke="#004a9b" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity="0.75"></line></svg>
+            </sc-for>
+            <sc-for list="{{ pins }}" as="p" hint-placeholder-count="24">
+              <button type="button" onClick="{{ p.select }}" onMouseEnter="{{ p.focus }}" onMouseLeave="{{ p.blur }}" aria-label="{{ p.name }}" style="position:absolute; left:{{ p.left }}; top:{{ p.top }}; width:{{ p.size }}; height:{{ p.size }}; margin:{{ p.offset }}; padding:0; border:0; background:transparent; cursor:pointer; display:{{ p.display }}; align-items:center; justify-content:center; z-index:4;">
+                <span style="display:block; width:{{ p.dot }}; height:{{ p.dot }}; border-radius:50%; background:{{ p.bg }}; box-shadow:0 0 0 {{ p.halo }} rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45); transition:all .18s ease;"></span>
+                <span style="display:{{ p.labelShow }}; position:absolute; left:50%; top:50%; transform:translate(-50%,calc(-100% - 11px)); padding:1px 5px; background:rgba(255,255,255,.9); border-radius:3px; font-size:11px; font-weight:600; line-height:1.4; color:#00305f; white-space:nowrap; pointer-events:none;">{{ p.label }}</span>
+              </button>
+            </sc-for>
+            <sc-for list="{{ clusterMarks }}" as="c" hint-placeholder-count="2">
+              <button type="button" onClick="{{ c.open }}" aria-label="{{ c.aria }}" style="position:absolute; left:{{ c.left }}; top:{{ c.top }}; width:{{ c.size }}; height:{{ c.size }}; margin:{{ c.offset }}; padding:0; border:0; background:transparent; cursor:pointer; display:{{ c.display }}; align-items:center; justify-content:center; z-index:3;">
+                <span style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:#004a9b; color:#ffffff; font-size:13px; font-weight:600; box-shadow:0 0 0 3px rgba(255,255,255,.95), 0 3px 8px rgba(0,49,95,.5);">{{ c.count }}</span>
+              </button>
+            </sc-for>
+            <sc-if value="{{ hoverName }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute; left:{{ tipLeft }}; top:{{ tipTop }}; transform:translate(-50%,-160%); background:#004a9b; color:#ffffff; font-size:13px; font-weight:500; padding:6px 12px; border-radius:6px; white-space:nowrap; pointer-events:none; box-shadow:0 10px 20px -6px rgba(0,49,95,.6); z-index:5;">{{ hoverName }}</div>
+            </sc-if>
+          </div>
+          <div style="padding:10px 14px 12px; font-size:12px; line-height:1.5; color:#475569; background:#f4f9fe;">Each date is the year of the Congregation's first foundation in that country. Tap a marker to see the communities there today; when zoomed in, drag to move the map and double-tap to return to the world.</div>
+        </div>
+
+        <sc-if value="{{ clusterLabel }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:0 18px 18px; background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 16px 34px -18px rgba(0,49,95,.5);">
+            <div style="display:flex; align-items:center; gap:12px; padding:14px 16px; background:#004a9b; color:#ffffff;">
+              <span style="flex:1 1 auto; display:flex; flex-direction:column; gap:2px;">
+                <span style="font-family:'Inknut Antiqua',serif; font-size:16px; line-height:1.3;">{{ clusterLabel }}</span>
+                <span style="font-size:13px; color:#b0d6f7;">{{ clusterCount }}</span>
+              </span>
+              <button type="button" onClick="{{ resetView }}" style="flex:0 0 auto; min-height:44px; padding:0 14px; border:0; border-radius:8px; background:#ffffff; color:#004a9b; font-size:14px; font-family:inherit; cursor:pointer;">World map</button>
+            </div>
+            <sc-for list="{{ clusterCountries }}" as="c" hint-placeholder-count="8">
+              <button type="button" onClick="{{ c.select }}" onMouseEnter="{{ c.focus }}" onMouseLeave="{{ c.blur }}" style="display:flex; width:100%; align-items:center; gap:10px; min-height:48px; padding:13px 16px; border:0; background:transparent; font-family:inherit; text-align:left; cursor:pointer; box-shadow:inset 0 -10px 14px -14px rgba(0,49,95,.35);">
+                <span style="flex:0 0 auto; width:8px; height:8px; border-radius:50%; background:#75c2ec; display:block;"></span>
+                <span style="flex:1 1 auto; font-size:15px; line-height:1.45; color:#1e293b;">{{ c.name }}</span>
+                <span style="flex:0 0 auto; font-size:13px; color:#75c2ec;">{{ c.year }}</span>
+                <svg viewBox="57 35.171 26 16.043" width="14" height="9" aria-hidden="true" style="flex:0 0 auto; fill:#75c2ec; transform:rotate(-90deg);"><path d="M57.5,38.193l12.5,12.5l12.5-12.5l-2.5-2.5l-10,10l-10-10L57.5,38.193z"></path></svg>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ selected }}" hint-placeholder-val="{{ false }}">
+          <div style="margin:0 18px 18px; background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 16px 34px -18px rgba(0,49,95,.5);">
+            <div style="display:flex; align-items:center; gap:12px; padding:14px 16px; background:#004a9b; color:#ffffff;">
+              <span style="flex:1 1 auto; display:flex; flex-direction:column; gap:2px;">
+                <span style="display:flex; align-items:baseline; gap:8px; font-family:'Inknut Antiqua',serif; font-size:16px; line-height:1.3;">{{ selected }}<span style="font-size:14px; color:#b0d6f7;">{{ selectedYear }}</span></span>
+                <span style="font-size:13px; color:#b0d6f7;">{{ selectedCount }}</span>
+              </span>
+              <button type="button" onClick="{{ resetView }}" style="flex:0 0 auto; min-height:44px; padding:0 14px; border:0; border-radius:8px; background:#ffffff; color:#004a9b; font-size:14px; font-family:inherit; cursor:pointer;">World map</button>
+            </div>
+            <sc-for list="{{ selectedLocations }}" as="loc" hint-placeholder-count="4">
+              <button type="button" onClick="{{ loc.open }}" style="display:flex; width:100%; align-items:center; gap:10px; min-height:48px; padding:13px 16px; border:0; background:transparent; font-family:inherit; text-align:left; cursor:pointer; box-shadow:inset 0 -10px 14px -14px rgba(0,49,95,.35);">
+                <span style="flex:0 0 auto; width:8px; height:8px; border-radius:50%; background:#75c2ec; display:block;"></span>
+                <span style="flex:1 1 auto; font-size:15px; line-height:1.45; color:#1e293b;">{{ loc.name }}</span>
+                <svg viewBox="57 35.171 26 16.043" width="14" height="9" aria-hidden="true" style="flex:0 0 auto; fill:#75c2ec; transform:rotate(-90deg);"><path d="M57.5,38.193l12.5,12.5l12.5-12.5l-2.5-2.5l-10,10l-10-10L57.5,38.193z"></path></svg>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <div style="margin:0 18px 24px; background:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 16px 34px -18px rgba(0,49,95,.5);">
+          <div style="padding:12px 16px; background:#f4f9fe; font-family:'Inknut Antiqua',serif; font-size:15px; color:#004a9b;">Regions of presence</div>
+          <sc-for list="{{ regions }}" as="r" hint-placeholder-count="6">
+            <div style="padding:14px 16px 16px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <span style="width:10px; height:10px; border-radius:50%; background:{{ r.color }}; display:block;"></span>
+                <span style="font-family:'Inknut Antiqua',serif; font-size:14px; color:#004a9b;">{{ r.label }}</span>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                <sc-for list="{{ r.items }}" as="c" hint-placeholder-count="4">
+                  <button type="button" onMouseEnter="{{ c.focus }}" onMouseLeave="{{ c.blur }}" onClick="{{ c.toggle }}" style="min-height:44px; padding:0 14px; border:0; border-radius:8px; background:{{ c.bg }}; color:{{ c.fg }}; font-size:14px; font-family:inherit; cursor:pointer; box-shadow:0 6px 14px -8px rgba(0,49,95,.6);">{{ c.name }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:#004a9b; color:#ffffff; padding:22px 18px 26px;">
+          <div style="font-family:'Inknut Antiqua',serif; font-size:15px; line-height:1.45; margin-bottom:14px;">Sisters of Saint Joseph<br>of the Apparition</div>
+          <div style="display:flex; flex-wrap:wrap; gap:10px 22px; margin-bottom:18px;">
+            <sc-for list="{{ footerLinks }}" as="f" hint-placeholder-count="6">
+              <a href="#1a" style="font-size:14px; color:#b0d6f7; text-decoration:none;">{{ f }}</a>
+            </sc-for>
+          </div>
+          <div style="padding-top:14px; box-shadow:inset 0 10px 16px -14px rgba(0,0,0,.6); font-size:12px; color:#b0d6f7;">Copyright © 2026 Sisters of Saint Joseph of the Apparition</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;quickLinkCount&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:5,&quot;min&quot;:3,&quot;max&quot;:5,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Home&quot;}}">
+const NAV = [
+  { label: "Home", children: [] },
+  { label: "Who we are", children: ["Congregation", "The Foundress St. Emilie", "Charism and Spirituality"] },
+  { label: "Where we are", children: ["Generalate", "Europe/Africa", "Asia/Oceania", "Middle East", "Latin America"] },
+  { label: "What we do", children: ["Education", "Health Care", "Pastoral Care", "Social Work", "Retreat Houses", "Guest Houses", "Hostels", "Orphanages", "Media Ministry"] },
+  { label: "Formation", children: ["Aim", "Stages", "Ongoing Formation", "Lay Associates", "Professional Formation"] },
+  { label: "News", children: ["News", "Bulletins", "General Chapter 2025", "Hymn of the General Chapter 2025", "Other useful weblinks"] },
+  { label: "Contact", children: [] },
+  { label: "Members", children: ["Archives", "Obituaries", "Letters", "Documents", "Voices of the Sisters"] }
+];
+
+const SLIDES = ["assets/slider1.jpg", "assets/slider2.jpg", "assets/slider3.jpg", "assets/slider4.jpg"];
+
+const EUROPE = "#004a9b", AFRICA = "#0a5ba8", MIDEAST = "#004aad", ASIA = "#046bd2", LATAM = "#4a9fdd", OCEANIA = "#75c2ec";
+
+const REGION_FILL = {
+  "sja-e-fr": EUROPE, "sja-e-en": EUROPE, "sja-e-ir": EUROPE, "sja-e-it": EUROPE,
+  "sja-e-ma": EUROPE, "sja-e-gr": EUROPE, "sja-e-cy": EUROPE, "sja-e-ro": EUROPE,
+  "sja-a-tu": AFRICA, "sja-a-et": AFRICA,
+  "sja-me-is": MIDEAST, "sja-me-sy": MIDEAST, "sja-me-le": MIDEAST, "sja-me-jo": MIDEAST, "sja-me-pa": MIDEAST,
+  "sja-as-in": ASIA, "sja-as-my": ASIA, "sja-as-th": ASIA, "sja-as-ph": ASIA, "sja-as-si": ASIA,
+  "sja-la-gu": LATAM, "sja-la-pa": LATAM, "sja-la-pe": LATAM,
+  "sja-o": OCEANIA
+};
+
+const REGIONS = [
+  { label: "Europe", color: EUROPE, items: ["France", "United Kingdom", "Ireland", "Italy", "Malta", "Greece", "Cyprus", "Romania"] },
+  { label: "Africa", color: AFRICA, items: ["Tunisia", "Ethiopia"] },
+  { label: "Middle East", color: MIDEAST, items: ["Israel", "Palestinian Territories", "Syria", "Lebanon", "Jordan"] },
+  { label: "Asia", color: ASIA, items: ["India", "Myanmar", "Thailand", "Philippines", "Singapore"] },
+  { label: "Latin America", color: LATAM, items: ["Guatemala", "Panama", "Peru"] },
+  { label: "Oceania", color: OCEANIA, items: ["Australia"] }
+];
+
+const LOCATIONS = {
+  "France": ["Champigny", "Gaillac", "Marseille", "Paris", "Plouguenast", "St Affrique", "St Brieuc", "Vanves"],
+  "United Kingdom": ["Bowdon Vale", "Manchester"],
+  "Ireland": ["Ballymote (Sligo)"],
+  "Italy": ["Castiglioncello, LI", "Firenze", "Marlia, LU", "Montecatini Terme, PT", "Rome", "Policoro, MT"],
+  "Malta": ["Blata l’Bajda", "Rabat", "Sliema", "Zabbar"],
+  "Greece": ["Heraclion", "Athens"],
+  "Cyprus": ["Larnaca", "Nicosia"],
+  "Romania": ["Negresti Oas"],
+  "Tunisia": ["Tunis", "Monastir"],
+  "Ethiopia": ["Addis Ababa"],
+  "Israel": ["Jerusalem", "Kiriat Yearim", "Nazareth", "Ramla"],
+  "Palestinian Territories": ["Bethlehem", "Jerusalem", "Ramallah"],
+  "Jordan": ["Amman"],
+  "Lebanon": ["Beyrouth", "Jeita", "Kleat"],
+  "Syria": ["Aleppo"],
+  "India": ["Ranchi, JH", "Gadalodma, JH", "Tundtoli, JH", "Mosaboni, JH", "Kasidha, JH", "Chembur, Mumbai, MH", "Ghodegoan, MH", "Weston Street, Kolkata, WB", "Basinda, WB", "Assisi Nagar, Chennai, TN", "Thirumanthurai, TN", "Vikkiramangalam, TN", "Manali, Chennai, TN", "Virapandian Patnam, TN", "Rothak, HR", "Port Blair, Andaman Islands"],
+  "Myanmar": ["Myitkyina, Kachin State", "Waimaw, Kachin State", "Panwa, Kachin State", "Falam, N Chin State", "Hakha, N Chin State", "Lumbang, N Chin State", "Saizang, N Chin State", "Loikaw, Kayah State", "Loilenlay, Kayah State", "Doungarou, Kayah State", "Lashio, N Shan State", "Momeik, N Shan State", "Panpauk, N Shan State", "Mawlamyine, Mon State", "Kyaikkhamee, Mon State", "Ahlon, Yangon Region", "Hmawbi, Yangon Region", "Sanchaung, Yangon Region", "Chack, Magwe Region", "Amarapura, Mandalay Region", "Mandalay, Mandalay Region", "Mogok, Mandalay Region", "Pyin Oo Lwin, Mandalay Region", "Sinkkaing, Mandalay Region", "Zawgyi, Mandalay Region", "Chaung-Yoe, Sagaing Region", "Nabet, Sagaing Region", "Ywadaw, Sagaing Region", "Ye-U, Sagaing Region", "Kalay, Sagaing Region", "Ingin-khon, Sagaing Region", "Tamu, Sagaing Region", "Kawthaung, Taninthayi Region"],
+  "Thailand": ["Bangkok", "Khlong Lan", "Ubon Ratchathani", "Chiang Mai", "Surin", "Phrae", "Mahasarakham", "Phayakaphoom Phisai", "Saraphi"],
+  "Philippines": ["Las Pinas City", "Novaliches", "Bohol", "Bani"],
+  "Singapore": ["Singapore"],
+  "Australia": ["Canning Vale W.A.", "Samson W.A.", "Kardinya W.A.", "Willeton W.A.", "Rossmoyne W.A."],
+  "Guatemala": ["Guatemala Zona 18", "Petén", "Chicamán Quiché", "El Tejar Chimaltenango", "San Juan Sacatepequez"],
+  "Peru": ["Lima"],
+  "Panama": ["Chepo 17"]
+};
+
+// [x%, y%, zoomScale] measured against assets/world-map-foundations.png (1625x968)
+const COUNTRY_POINTS = {
+  "France": [39.0, 34.1, 4], "United Kingdom": [38.6, 28.4, 4.4], "Ireland": [36.3, 26.5, 5],
+  "Italy": [44.0, 39.6, 4], "Malta": [45.2, 44.2, 3.6], "Greece": [47.5, 41.3, 4.5],
+  "Cyprus": [52.1, 44.3, 6], "Romania": [49.2, 26.9, 4.2],
+  "Tunisia": [42.7, 50.7, 4.5], "Ethiopia": [53.4, 69.5, 3.6],
+  "Israel": [53.2, 49.6, 6], "Palestinian Territories": [53.5, 49.2, 5],
+  "Syria": [55.1, 45.6, 5], "Lebanon": [53.1, 47.2, 6], "Jordan": [54.6, 50.3, 6],
+  "India": [64.7, 57.0, 2.8], "Myanmar": [71.4, 56.3, 3.4], "Thailand": [73.0, 62.0, 3.6],
+  "Singapore": [72.7, 69.6, 6], "Philippines": [80.0, 62.0, 4],
+  "Australia": [84.0, 85.8, 2.4],
+  "Guatemala": [11.7, 52.3, 5], "Panama": [14.5, 58.3, 5.5], "Peru": [15.5, 69.2, 3.6]
+};
+
+// year of the Congregation's first foundation, as printed on the map
+const COUNTRY_YEARS = {
+  "France": "1832", "United Kingdom": "1854", "Ireland": "1957", "Italy": "1840",
+  "Greece": "1846", "Cyprus": "1844", "Romania": "1992", "Tunisia": "1840",
+  "Ethiopia": "2008", "Israel": "1956", "Syria": "1854", "Lebanon": "1847",
+  "Jordan": "1998", "India": "1966", "Myanmar": "1847", "Thailand": "1961",
+  "Singapore": "2012", "Philippines": "1995", "Australia": "1855",
+  "Guatemala": "1970", "Panama": "1995", "Peru": "1969"
+};
+
+// countries that sit too close to tap apart on a 390px-wide world map:
+// one marker stands for the group and opens a chooser
+const CLUSTERS = [
+  { key: "med", label: "Mediterranean & Holy Land", x: 51.7, y: 45.9, scale: 4.6,
+    members: ["Greece", "Malta", "Cyprus", "Syria", "Lebanon", "Israel", "Palestinian Territories", "Jordan"] },
+  { key: "brit", label: "Britain & Ireland", x: 34.4, y: 24.2, scale: 4.4,
+    members: ["United Kingdom", "Ireland"] },
+  { key: "sea", label: "South-East Asia", x: 72.4, y: 62.6, scale: 3.4,
+    members: ["Myanmar", "Thailand", "Singapore"] },
+  { key: "camerica", label: "Central America", x: 8.6, y: 55.2, scale: 5,
+    members: ["Guatemala", "Panama"] }
+];
+const CLUSTER_OF = {};
+CLUSTERS.forEach(c => c.members.forEach(m => { CLUSTER_OF[m] = c.key; }));
+
+const UNLABELLED = { "Malta": "Malta", "Palestinian Territories": "Palestine" };
+
+// marker offset in screen px, drawn with a leader line back to the true point
+const NUDGE = { "Palestinian Territories": [34, 20] };
+
+const HAS_COMMUNITIES = (name) => ((LOCATIONS[name] || []).length > 0);
+
+const MAP_RATIO = 968 / 1625;
+
+class Component extends DCLogic {
+  state = { menuOpen: false, open: null, openFull: "Who we are", slide: 0, mapLoading: true, hoverName: null, hoverX: 0, hoverY: 0, selected: null, community: null, cluster: null, mapW: 390, pan: { x: 0, y: 0 }, dragging: false };
+  mapContainerRef = React.createRef();
+
+  componentDidMount() {
+    if (this.props.autoSlide !== false) {
+      const ms = (this.props.slideSeconds ?? 4) * 1000;
+      this.timer = setInterval(() => {
+        this.setState(s => ({ slide: (s.slide + 1) % SLIDES.length }));
+      }, ms);
+    }
+    this.measure();
+    window.addEventListener("resize", this.measure);
+  }
+  componentWillUnmount() {
+    clearInterval(this.timer);
+    window.removeEventListener("resize", this.measure);
+  }
+
+  measure = () => {
+    const el = this.mapContainerRef.current;
+    if (el && el.clientWidth && el.clientWidth !== this.state.mapW) this.setState({ mapW: el.clientWidth });
+  };
+
+  view() {
+    const sel = this.state.selected;
+    const cl = !sel && this.state.cluster ? CLUSTERS.find(c => c.key === this.state.cluster) : null;
+    const p = sel ? COUNTRY_POINTS[sel] : (cl ? [cl.x, cl.y, cl.scale] : null);
+    if (!p) return { s: 1, tx: 0, ty: 0 };
+    const s = p[2] || 3.6;
+    const clamp = (v) => Math.max(100 - 100 * s, Math.min(0, v));
+    return {
+      s: s,
+      tx: clamp(50 - s * p[0] + this.state.pan.x),
+      ty: clamp(50 - s * p[1] + this.state.pan.y)
+    };
+  }
+
+  zoomed() { return !!(this.state.selected || this.state.cluster); }
+
+  // every marker on screen — country pins and cluster badges alike — so hit
+  // areas are sized against what is really there, never against hidden pins
+  buildMarkers(pt) {
+    const w = this.state.mapW, h = w * MAP_RATIO;
+    const onMap = (xy) => xy[0] > -3 && xy[0] < 103 && xy[1] > -3 && xy[1] < 103;
+    const list = [];
+    Object.keys(COUNTRY_POINTS).filter(HAS_COMMUNITIES).forEach(name => {
+      const truth = pt(name);
+      const n = NUDGE[name];
+      const xy = n ? [truth[0] + n[0] / w * 100, truth[1] + n[1] / h * 100] : truth;
+      const grouped = CLUSTER_OF[name];
+      const visible = onMap(xy) && (!grouped || this.state.selected === name || this.state.cluster === grouped);
+      list.push({ kind: "pin", name: name, xy: xy, truth: truth, nudged: !!n, visible: visible });
+    });
+    CLUSTERS.forEach(c => {
+      const xy = [pt.at(c.x, c.y)[0], pt.at(c.x, c.y)[1]];
+      const live = c.members.filter(HAS_COMMUNITIES).length;
+      list.push({ kind: "cluster", cluster: c, xy: xy, count: live,
+        visible: live > 0 && onMap(xy) && !this.state.selected && this.state.cluster !== c.key });
+    });
+    const shown = list.filter(m => m.visible);
+    shown.forEach(m => {
+      let nearest = Infinity;
+      shown.forEach(o => {
+        if (o === m) return;
+        nearest = Math.min(nearest, Math.hypot((m.xy[0] - o.xy[0]) / 100 * w, (m.xy[1] - o.xy[1]) / 100 * h));
+      });
+      // never floor above the real separation: an oversized box would cover a neighbour's centre
+      m.hit = Math.max(12, Math.min(44, nearest));
+    });
+
+    const pins = list.filter(m => m.kind === "pin").map(m => {
+      const active = this.state.hoverName === m.name || this.state.selected === m.name;
+      const hit = m.hit || 18;
+      return {
+        name: m.name,
+        label: UNLABELLED[m.name] || "",
+        labelShow: UNLABELLED[m.name] ? "block" : "none",
+        left: m.xy[0] + "%",
+        top: m.xy[1] + "%",
+        size: hit + "px",
+        offset: (-hit / 2) + "px 0 0 " + (-hit / 2) + "px",
+        display: m.visible ? "flex" : "none",
+        dot: active ? "17px" : "11px",
+        halo: active ? "5px" : "3px",
+        bg: active ? "#00305f" : "#004a9b",
+        select: () => { if (this.dragged) return; if (this.state.selected === m.name) this.resetView(); else this.selectCountry(m.name); },
+        focus: () => this.focusCountry(m.name),
+        blur: () => this.clearFocus()
+      };
+    });
+
+    const clusters = list.filter(m => m.kind === "cluster").map(m => {
+      const hit = m.hit || 18;
+      return {
+        label: m.cluster.label,
+        aria: m.cluster.label + ", " + m.count + " countries",
+        count: m.count,
+        left: m.xy[0] + "%",
+        top: m.xy[1] + "%",
+        size: hit + "px",
+        offset: (-hit / 2) + "px 0 0 " + (-hit / 2) + "px",
+        display: m.visible ? "flex" : "none",
+        open: () => { if (!this.dragged) this.openCluster(m.cluster.key); }
+      };
+    });
+
+    const leaders = shown.filter(m => m.kind === "pin" && m.nudged).map(m => ({
+      x1: m.truth[0], y1: m.truth[1], x2: m.xy[0], y2: m.xy[1]
+    }));
+
+    return { pins: pins, clusters: clusters, leaders: leaders };
+  }
+
+    onMapPointerDown = (event) => {
+    if (!this.zoomed()) return;
+    this.drag = { x: event.clientX, y: event.clientY, id: event.pointerId, el: event.currentTarget,
+      pan: { x: this.state.pan.x, y: this.state.pan.y } };
+    this.dragged = false;
+  };
+
+  onMapPointerMove = (event) => {
+    if (!this.drag) return;
+    const w = this.state.mapW, h = w * MAP_RATIO;
+    const dxPx = event.clientX - this.drag.x, dyPx = event.clientY - this.drag.y;
+    if (!this.dragged && (Math.abs(dxPx) > 6 || Math.abs(dyPx) > 6)) {
+      this.dragged = true;
+      // capture only once this is really a drag — capturing on pointerdown
+      // retargets the following click and swallows marker taps
+      if (this.drag.el.setPointerCapture) this.drag.el.setPointerCapture(this.drag.id);
+    }
+    if (!this.dragged) return;
+    this.setState({
+      dragging: true,
+      pan: { x: this.drag.pan.x + dxPx / w * 100, y: this.drag.pan.y + dyPx / h * 100 }
+    });
+  };
+
+  onMapPointerUp = () => {
+    if (!this.drag) return;
+    if (this.drag.el.releasePointerCapture && this.drag.el.hasPointerCapture && this.drag.el.hasPointerCapture(this.drag.id)) {
+      this.drag.el.releasePointerCapture(this.drag.id);
+    }
+    this.drag = null;
+    this.setState({ dragging: false });
+    setTimeout(() => { this.dragged = false; }, 0);
+  };
+
+  onMapDoubleClick = () => { if (this.zoomed()) this.resetView(); };
+
+  selectCountry = (name) => {
+    if (!COUNTRY_POINTS[name]) return;
+    this.setState({ selected: name, hoverName: name, community: null, cluster: null, pan: { x: 0, y: 0 } });
+  };
+
+  resetView = () => { this.setState({ selected: null, hoverName: null, community: null, cluster: null, pan: { x: 0, y: 0 } }); };
+
+  openCluster = (key) => { this.setState({ cluster: key, selected: null, hoverName: null, community: null, pan: { x: 0, y: 0 } }); };
+
+  focusCountry = (name) => { if (!this.state.selected) this.setState({ hoverName: name }); };
+
+  clearFocus = () => { if (!this.state.selected) this.setState({ hoverName: null }); };
+
+    buildNav(expandedKey, stateKey, decorate) {
+    return NAV.map(item => ({
+      label: item.label,
+      children: item.children,
+      hasChildren: item.children.length > 0,
+      expanded: expandedKey === item.label,
+      arrowTransform: expandedKey === item.label ? "rotate(180deg)" : "rotate(0deg)",
+      rowBg: decorate && item.label === "Home" ? "#b0d6f7" : "transparent",
+      rowColor: "#004a9b",
+      toggle: () => this.setState(s => ({ [stateKey]: s[stateKey] === item.label ? null : item.label }))
+    }));
+  }
+
+  renderVals() {
+    const v = this.view();
+    const pt = (name) => {
+      const p = COUNTRY_POINTS[name];
+      return [v.tx + v.s * p[0], v.ty + v.s * p[1]];
+    };
+    pt.at = (x, y) => [v.tx + v.s * x, v.ty + v.s * y];
+    const marks = this.buildMarkers(pt);
+    const hovered = this.state.hoverName && COUNTRY_POINTS[this.state.hoverName] ? pt(this.state.hoverName) : null;
+    return {
+      menuOpen: this.state.menuOpen,
+      toggleMenu: () => this.setState(s => ({ menuOpen: !s.menuOpen })),
+      nav: this.buildNav(this.state.open, "open", false),
+      navFull: this.buildNav(this.state.openFull, "openFull", true),
+      quickLinks: [
+        { title: "Who we are", note: "Congregation, foundress, charism" },
+        { title: "Where we are", note: "Present in twenty-four countries" },
+        { title: "What we do", note: "Education, health care, social work" },
+        { title: "Formation", note: "Stages, ongoing formation, lay associates" },
+        { title: "Contact", note: "Write to the Generalate" }
+      ].slice(0, this.props.quickLinkCount ?? 5),
+      news: [
+        { date: "August 2026", title: "General Chapter 2025 — final message to the Congregation" },
+        { date: "July 2026", title: "Voices of the Sisters: mission in the Middle East" },
+        { date: "June 2026", title: "New bulletin available for download" }
+      ],
+      footerLinks: ["Who we are", "Where we are", "What we do", "Formation", "News", "Contact", "Members"],
+      mapContainerRef: this.mapContainerRef,
+      mapTouch: this.zoomed() ? "none" : "auto",
+      mapCursor: this.zoomed() ? (this.state.dragging ? "grabbing" : "grab") : "default",
+      mapTransition: this.state.dragging ? "none" : "transform .55s cubic-bezier(.4,0,.2,1)",
+      onMapPointerDown: this.onMapPointerDown,
+      onMapPointerMove: this.onMapPointerMove,
+      onMapPointerUp: this.onMapPointerUp,
+      onMapDoubleClick: this.onMapDoubleClick,
+      mapTransform: "translate(" + v.tx + "%, " + v.ty + "%) scale(" + v.s + ")",
+      pins: marks.pins,
+      leaders: marks.leaders,
+      clusterMarks: marks.clusters,
+      clusterLabel: (() => {
+        const c = CLUSTERS.find(k => k.key === this.state.cluster);
+        return this.state.selected || !c ? null : c.label;
+      })(),
+      clusterCount: (() => {
+        const c = CLUSTERS.find(k => k.key === this.state.cluster);
+        return c ? c.members.filter(HAS_COMMUNITIES).length + " countries" : "";
+      })(),
+      clusterCountries: (() => {
+        const c = CLUSTERS.find(k => k.key === this.state.cluster);
+        if (!c || this.state.selected) return [];
+        return c.members.filter(HAS_COMMUNITIES).map(name => ({
+          name: name,
+          year: COUNTRY_YEARS[name] || "",
+          select: () => this.selectCountry(name),
+          focus: () => this.focusCountry(name),
+          blur: () => this.clearFocus()
+        }));
+      })(),
+      hoverName: this.state.hoverName ? this.state.hoverName + (COUNTRY_YEARS[this.state.hoverName] ? " · " + COUNTRY_YEARS[this.state.hoverName] : "") : null,
+      tipLeft: hovered ? hovered[0] + "%" : "50%",
+      tipTop: hovered ? hovered[1] + "%" : "50%",
+      selected: this.state.selected,
+      selectedLocations: (this.state.selected ? (LOCATIONS[this.state.selected] || []) : []).map(loc => ({
+        name: loc,
+        open: () => this.setState({ community: loc })
+      })),
+      community: this.state.community,
+      communityMeta: this.state.community ? this.state.selected + " · " + (REGIONS.find(r => r.items.indexOf(this.state.selected) > -1) || {}).label : "",
+      communitySlotId: this.state.community ? "sja-" + this.state.community.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "sja-community",
+      communityIntro: this.state.community ? "A community of the Sisters of St Joseph of the Apparition in " + this.state.community + ", " + this.state.selected + "." : "",
+      closeCommunity: () => this.setState({ community: null }),
+      selectedCount: this.state.selected ? (LOCATIONS[this.state.selected] || []).length + (((LOCATIONS[this.state.selected] || []).length === 1) ? " community" : " communities") : "",
+      selectedYear: this.state.selected ? (COUNTRY_YEARS[this.state.selected] || "") : "",
+      resetView: this.resetView,
+      regions: REGIONS.map(r => ({
+        label: r.label,
+        color: r.color,
+        items: r.items.filter(HAS_COMMUNITIES).map(name => ({
+          name: name,
+          color: r.color,
+          bg: this.state.hoverName === name ? r.color : "#f4f9fe",
+          fg: this.state.hoverName === name ? "#ffffff" : "#004a9b",
+          focus: () => { if (!this.state.selected) this.focusCountry(name); },
+          toggle: () => { if (this.state.selected === name) this.resetView(); else this.selectCountry(name); },
+          blur: () => { if (!this.state.selected) this.clearFocus(); }
+        }))
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — Sisters of Saint Joseph of the Apparition</title>
+<link rel="icon" href="assets/logo_sja.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="Contact">
+
+<div class="screen">
+
+  <header class="bar">
+    <div class="bar__top">
+      <a class="bar__logo" href="index.html">
+        <img src="assets/logo_sja.png" alt="Sisters of Saint Joseph of the Apparition" width="52" height="52">
+      </a>
+      <a class="bar__title" href="index.html">Sisters of Saint Joseph<br>of the Apparition</a>
+      <button class="burger" type="button" id="navToggle" aria-label="Menu" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="drawer" id="siteNav" aria-label="Main navigation" hidden></nav>
+
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="index.html">Home</a>
+    <span class="sep">»</span>
+    <span>Contact</span>
+  </nav>
+
+  <div class="block wrap">
+    <h1 class="title">Contact</h1>
+    <div class="rule"></div>
+<h2>We are happy to hear from you!</h2>
+<p>Tel.<br><strong>+39 0639366528</strong></p>
+<p>Email<br><a href="mailto:congsjasecgen@gmail.com"><strong>congsjasecgen@gmail.com</strong></a></p>
+<p>Address<br><strong>Via Paolo III, 16</strong><br><strong>00165, Roma</strong></p>
+  </div>
+  <div class="card wrap card--form">
+    <div class="card__subhead">Write to us</div>
+    <div class="card__body">
+    <form class="form" id="contactForm" data-mailto="congsjasecgen@gmail.com" novalidate>
+      <label class="form__field">
+        <span>Name</span>
+        <input type="text" name="name" autocomplete="name" required>
+      </label>
+      <label class="form__field">
+        <span>E-mail</span>
+        <input type="email" name="email" autocomplete="email" required>
+      </label>
+      <label class="form__field">
+        <span>Phone number</span>
+        <input type="tel" name="phone" autocomplete="tel">
+      </label>
+      <label class="form__field">
+        <span>Message</span>
+        <textarea name="message" rows="6" required></textarea>
+      </label>
+      <p class="form__note">Sending opens a new message in your own e-mail app, addressed to the Generalate, with what you wrote here.</p>
+      <button class="btn" type="submit">Send</button>
+    </form>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <div class="foot__name">Sisters of Saint Joseph<br>of the Apparition</div>
+    <div class="foot__links" data-footer-links></div>
+    <div class="foot__legal">Copyright © 2026 Sisters of Saint Joseph of the Apparition</div>
+  </footer>
+
+</div>
+
+<script src="js/site.js"></script>
+</body>
+</html>

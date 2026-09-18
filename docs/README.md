@@ -11,8 +11,12 @@ docs/
   where-we-are.html   Where we are — interactive foundations map
   *.html              every other page of the site (see "The other pages")
   css/style.css       all styling (palette and metrics taken from the design)
-  js/site.js          navigation drawer, footer links, contact form
+  js/site.js          navigation drawer, footer links, contact form,
+                      search suggestions, lazy page parts
+  js/reader.js        the in-page PDF reader
   js/map.js           the interactive map layer
+  parts/              the later parts of long pages, fetched on scroll
+  search-index.json   what the search box suggests from
   assets/             logo, photographs, foundations map artwork
   assets/media/       photographs of the ported pages (WebP)
   assets/docs/        PDFs (bulletins, chapter updates, safeguarding policy)
@@ -119,6 +123,32 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   short laptop screen the panel header can still sit below the fold — placing
   the panel beside the map at that width would fix it properly.
 
+## Reading, searching, long pages, the map
+
+- **PDF reader** — a link to a PDF served by this site opens in a
+  full-screen reader (`js/reader.js`, pdf.js 4.10 from cdnjs, fetched on first
+  use) with a page counter and a Download button; pages render as they are
+  scrolled to. Such links are labelled "Read (PDF)". PDFs still on the live
+  site keep their "Download" label and open there — its server sends no CORS
+  header, so pdf.js cannot read them. Without JavaScript the link is a plain
+  download either way.
+- **Long pages load as you scroll** — the generator keeps the first ten
+  blocks of a page and writes the rest as `parts/<page>-N.html` (ten blocks
+  each). A sentinel at the end of the page fetches the next part when it
+  comes within 900px of the viewport, and carries a real "Show more" link as
+  a fallback. Only pages over 11KB of content are split; at present that is
+  Current news (9 parts). Images everywhere are `loading="lazy"` regardless.
+- **Search suggestions** — the search box on every page reads
+  `search-index.json` (one entry per heading-delimited passage of every
+  page, ~22KB, fetched when the box is first focused) and shows the eight
+  best matches with the term highlighted, the page and section, and a
+  snippet. Arrow keys move, Enter opens the highlighted (or first) match; with
+  no match, Enter falls through to the Google site-search of the live site as
+  before. The index is rebuilt with the pages.
+- **Contact map** — a Google Maps embed of Via Paolo III 16 (the keyless
+  `output=embed` form, no API key needed) with an "Open in Google Maps" row
+  beneath it.
+
 ## Deliberate differences from the design canvas
 
 - **Responsive** — the design draws 430px screens. Phones get exactly that.
@@ -133,8 +163,9 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   hero, world map and footer span the whole column.
 - **The "Menu" screen** is the drawer, opened by the header button, rather than a
   separate page.
-- **Search** submits to a Google site-search for `stjoseph-apparition.org`, since
-  a static site has no search backend.
+- **Search** is on every page, not only Home, and suggests from the site's own
+  content (above); the Google site-search of `stjoseph-apparition.org` is the
+  fallback when nothing matches.
 - **Community photographs** — the design used a drag-and-drop mockup slot. Here
   the sheet shows `assets/communities/<slug>.jpg` if such a file exists (slug =
   the community name lowercased, non-alphanumerics replaced by `-`, e.g.

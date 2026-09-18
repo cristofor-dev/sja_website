@@ -504,6 +504,8 @@ class Converter:
             if not label:
                 return ''
             if 'wp-block-button__link' in cls or kind == 'pdf':
+                if kind == 'pdf' and href.startswith('assets/') and label.strip().lower() == 'download':
+                    label = 'Read'          # opens in the in-page reader; Download stays inside it
                 if kind == 'pdf' and 'PDF' not in label.upper():
                     label += ' (PDF)'
                 return f'<p><a class="btn btn--doc" href="{href}">{label}</a></p>\n'
@@ -533,6 +535,21 @@ def read_entry(mirror_dir):
     title = soup.select_one('h1.entry-title')
     desc = soup.find('meta', attrs={'name': 'description'})
     return entry, (title.get_text(strip=True) if title else None), (desc.get('content') if desc else '')
+
+
+SEARCH_FORM = '''    <form class="bar__search" role="search" action="https://www.google.com/search" method="get" target="_blank" data-site-search>
+      <label class="bar__field">
+        <svg viewBox="-893 477 142 142" width="14" height="14" aria-hidden="true"><path d="M-787.4,568.7h-6.3l-2.4-2.4c7.9-8.7,12.6-20.5,12.6-33.1c0-28.4-22.9-51.3-51.3-51.3c-28.4,0-51.3,22.9-51.3,51.3c0,28.4,22.9,51.3,51.3,51.3c12.6,0,24.4-4.7,33.1-12.6l2.4,2.4v6.3l39.4,39.4l11.8-11.8L-787.4,568.7L-787.4,568.7z M-834.7,568.7c-19.7,0-35.5-15.8-35.5-35.5c0-19.7,15.8-35.5,35.5-35.5c19.7,0,35.5,15.8,35.5,35.5C-799.3,553-815,568.7-834.7,568.7L-834.7,568.7z"></path></svg>
+        <span class="visually-hidden">Search the site</span>
+        <input type="search" name="q" placeholder="Search the site…" autocomplete="off" aria-autocomplete="list" aria-controls="searchSuggest" aria-expanded="false">
+      </label>
+      <input type="hidden" name="as_sitesearch" value="stjoseph-apparition.org">
+      <div class="bar__lang">
+        <span class="lang-on">EN</span>
+        <span class="lang-off" title="French pages are not yet available">FR</span>
+      </div>
+      <div class="suggest" id="searchSuggest" role="listbox" hidden></div>
+    </form>'''
 
 
 def shell(label, title, body, crumbs, description=''):
@@ -567,6 +584,7 @@ def shell(label, title, body, crumbs, description=''):
         <span></span><span></span><span></span>
       </button>
     </div>
+{SEARCH_FORM}
   </header>
 
   <nav class="drawer" id="siteNav" aria-label="Main navigation" hidden></nav>
@@ -586,6 +604,7 @@ def shell(label, title, body, crumbs, description=''):
 </div>
 
 <script src="js/site.js"></script>
+<script src="js/reader.js" defer></script>
 </body>
 </html>
 '''
@@ -638,6 +657,89 @@ CONTACT_FORM = '''
     </form>'''
 
 
+PARTS_DIR = os.path.join(DOCS, 'parts')
+FIRST_BLOCKS = 10      # blocks served with the page itself
+PART_BLOCKS = 10       # blocks per lazily fetched part
+LONG_PAGE = 11000      # bytes of content before a page is split at all
+SEARCH_INDEX = []      # entries for docs/search-index.json
+
+
+def split_blocks(content_html):
+    """Top-level elements of converted content, as HTML strings."""
+    soup = BeautifulSoup(content_html, 'html.parser')
+    return [str(c) for c in soup.children if isinstance(c, Tag)]
+
+
+def chunk_content(filename, content_html):
+    """Keep the first blocks in the page; write the rest as fetchable parts
+    and return the page HTML with a sentinel that loads them on scroll."""
+    blocks = split_blocks(content_html)
+    if len(content_html) < LONG_PAGE or len(blocks) <= FIRST_BLOCKS + 4:
+        return content_html
+    os.makedirs(PARTS_DIR, exist_ok=True)
+    stem = filename[:-5]
+    rest = blocks[FIRST_BLOCKS:]
+    parts = [rest[i:i + PART_BLOCKS] for i in range(0, len(rest), PART_BLOCKS)]
+    for n, part in enumerate(parts, start=2):
+        with open(os.path.join(PARTS_DIR, f'{stem}-{n}.html'), 'w', encoding='utf-8') as f:
+            f.write('\n'.join(part) + '\n')
+    total = len(parts) + 1
+    sentinel = (f'<div class="lazy" data-part="parts/{stem}-2.html" data-stem="parts/{stem}" data-next="2" data-last="{total}">'
+                f'<a class="btn btn--ghost" href="parts/{stem}-2.html">Show more of this page</a>'
+                f'<span class="lazy__status" aria-live="polite"></span></div>')
+    return '\n'.join(blocks[:FIRST_BLOCKS]) + '\n' + sentinel
+
+
+def index_page(label, filename, section, content_html):
+    """Add one search entry per heading-delimited passage of a page."""
+    soup = BeautifulSoup(content_html, 'html.parser')
+    heading, buf = '', []
+
+    def flush():
+        text = re.sub(r'\s+', ' ', ' '.join(buf)).strip()
+        if text or heading:
+            SEARCH_INDEX.append({'t': label, 'u': filename, 's': section, 'h': heading, 'x': text[:600]})
+
+    for el in soup.children:
+        if not isinstance(el, Tag):
+            continue
+        if el.name in ('h2', 'h3', 'h4'):
+            flush()
+            heading, buf = el.get_text(' ', strip=True), []
+        else:
+            caps = [fc.get_text(' ', strip=True) for fc in el.find_all('figcaption')]
+            piece = el.get_text(' ', strip=True) if el.name != 'div' else ' '.join(caps)
+            # long passages become several entries so no sentence falls past the cap
+            if buf and sum(len(b) for b in buf) + len(piece) > 500:
+                flush()
+                buf = []
+            buf.append(piece)
+    flush()
+
+
+def index_existing(label, filename, section):
+    """Index a hand-built page (Home, Congregation, Where we are) from its HTML."""
+    with open(os.path.join(DOCS, filename), encoding='utf-8') as f:
+        soup = BeautifulSoup(f.read(), 'html.parser')
+    for junk in soup.select('header, nav, footer, script, style, .drawer'):
+        junk.decompose()
+    text = re.sub(r'\s+', ' ', soup.get_text(' ', strip=True))
+    SEARCH_INDEX.append({'t': label, 'u': filename, 's': section, 'h': '', 'x': text[:600]})
+
+
+CONTACT_MAP = '''
+  <div class="card wrap card--map">
+    <div class="card__subhead">Where to find us</div>
+    <div class="map-embed">
+      <iframe src="https://www.google.com/maps?q=Via+Paolo+III+16,+00165+Roma,+Italia&z=16&output=embed" width="600" height="400" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="Map showing the Generalate, Via Paolo III 16, Rome"></iframe>
+    </div>
+    <a class="row row--plain" href="https://www.google.com/maps/search/?api=1&query=Via+Paolo+III+16,+00165+Roma,+Italia" rel="noopener">
+      Open in Google Maps
+      ''' + CHEVRON + '''
+    </a>
+  </div>'''
+
+
 def build_page(label, filename, mirror_dir, kind, crumbs, siblings_card, description_override=None):
     entry, h1, desc = read_entry(mirror_dir) if mirror_dir else (None, None, '')
     title = label
@@ -648,14 +750,16 @@ def build_page(label, filename, mirror_dir, kind, crumbs, siblings_card, descrip
     elif kind == 'contact':
         details = conv.convert(entry) if entry is not None else ''
         details = details.replace('<h3>', '<h2>').replace('</h3>', '</h2>')
-        body = title_block(title, details) + '\n' + '  <div class="card wrap card--form">\n    <div class="card__subhead">Write to us</div>\n    <div class="card__body">' + CONTACT_FORM + '\n    </div>\n  </div>'
+        body = title_block(title, details) + '\n' + CONTACT_MAP + '\n' + '  <div class="card wrap card--form">\n    <div class="card__subhead">Write to us</div>\n    <div class="card__body">' + CONTACT_FORM + '\n    </div>\n  </div>'
+        index_page(label, filename, crumbs[0][0], details)
     else:
         content = conv.convert(entry) if entry is not None else ''
         if not content.strip():
             content = '<p class="empty">The Congregation has not yet published content for this page.</p>'
         if 'video-offsite' in conv.notes:
             content += '\n<p class="note">Videos on this page play from the Congregation\'s main website.</p>'
-        body = title_block(title, content)
+        index_page(label, filename, crumbs[0][0], content)
+        body = title_block(title, chunk_content(filename, content))
 
     if siblings_card:
         body += '\n\n' + siblings_card
@@ -717,7 +821,17 @@ def main():
             report[filename] = build_page(label, filename, mirror_dir, kind, crumbs, card)
             written.append(filename)
 
-    print(f'{len(written)} pages written')
+    index_existing('Home', 'index.html', 'Home')
+    index_existing('Congregation', 'congregation.html', 'Who we are')
+    index_existing('Where we are', 'where-we-are.html', 'Where we are')
+    for sec_label, sec_file, _, sec_kind, children in SECTIONS:
+        if sec_kind == 'section':
+            SEARCH_INDEX.append({'t': sec_label, 'u': sec_file, 's': sec_label, 'h': '',
+                                 'x': ', '.join(c[0] for c in children)})
+    import json
+    with open(os.path.join(DOCS, 'search-index.json'), 'w', encoding='utf-8') as f:
+        json.dump(SEARCH_INDEX, f, ensure_ascii=False, separators=(',', ':'))
+    print(f'{len(written)} pages written, {len(SEARCH_INDEX)} search entries')
     for f, notes in sorted(report.items()):
         if notes:
             print(f'  {f}: ' + ', '.join(f'{n}×{notes.count(n)}' for n in sorted(set(notes))))

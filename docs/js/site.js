@@ -189,6 +189,203 @@
 
     var form = document.querySelector('form[data-mailto]');
     if (form) bindMailForm(form);
+
+    var lazy = document.querySelector('.lazy[data-part]');
+    if (lazy) bindLazyParts(lazy);
+
+    var search = document.querySelector('form[data-site-search]');
+    if (search) bindSearch(search);
+  }
+
+  /* ── long pages: the rest of the page is fetched as the reader scrolls ──
+     The generator keeps the first blocks in the page and writes the rest as
+     parts/<page>-N.html. The sentinel carries a real link, so without
+     JavaScript the reader can still open the next part. */
+  function bindLazyParts(sentinel) {
+    var status = sentinel.querySelector('.lazy__status');
+    var link = sentinel.querySelector('a');
+    var busy = false;
+
+    function loadNext() {
+      if (busy) return;
+      var next = parseInt(sentinel.getAttribute('data-next'), 10);
+      var last = parseInt(sentinel.getAttribute('data-last'), 10);
+      if (!next || next > last) { sentinel.remove(); return; }
+      busy = true;
+      sentinel.classList.add('is-loading');
+      status.textContent = 'Loading more…';
+      fetch(sentinel.getAttribute('data-stem') + '-' + next + '.html', { credentials: 'same-origin' })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then(function (htmlText) {
+          var tmp = document.createElement('div');
+          tmp.innerHTML = htmlText;
+          while (tmp.firstChild) sentinel.parentNode.insertBefore(tmp.firstChild, sentinel);
+          next += 1;
+          sentinel.setAttribute('data-next', String(next));
+          busy = false;
+          sentinel.classList.remove('is-loading');
+          if (next > last) {
+            if (observer) observer.disconnect();
+            sentinel.remove();
+          } else {
+            link.href = sentinel.getAttribute('data-stem') + '-' + next + '.html';
+            status.textContent = '';
+            /* if the sentinel is still on screen (short part), keep going */
+            if (observer) { observer.unobserve(sentinel); observer.observe(sentinel); }
+          }
+        })
+        .catch(function () {
+          busy = false;
+          sentinel.classList.remove('is-loading');
+          status.textContent = 'Could not load the rest of the page. ';
+          link.textContent = 'Open the next part';
+        });
+    }
+
+    link.addEventListener('click', function (ev) { ev.preventDefault(); loadNext(); });
+
+    var observer = null;
+    if ('IntersectionObserver' in window) {
+      observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (en.isIntersecting) loadNext(); });
+      }, { rootMargin: '900px 0px' });
+      observer.observe(sentinel);
+    }
+  }
+
+  /* ── search suggestions from the site's own content ──
+     search-index.json (built with the pages) holds one entry per heading of
+     every page. Typing shows the best matches; Enter opens the first; with no
+     match the form falls through to a Google search of the live site. */
+  function bindSearch(form) {
+    var input = form.querySelector('input[type="search"]');
+    var box = form.querySelector('.suggest');
+    if (!input || !box) return;
+    var index = null, loading = null, items = [], active = -1;
+
+    function load() {
+      if (index) return Promise.resolve(index);
+      if (!loading) {
+        loading = fetch('search-index.json', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            index = data.map(function (e) {
+              e.hay = (e.t + ' ' + e.h + ' ' + e.x).toLowerCase();
+              return e;
+            });
+            return index;
+          });
+      }
+      return loading;
+    }
+
+    function fold(s) {
+      return s.normalize ? s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() : s.toLowerCase();
+    }
+
+    function score(entry, terms) {
+      var s = 0;
+      var title = fold(entry.t), head = fold(entry.h), hay = fold(entry.hay);
+      for (var i = 0; i < terms.length; i++) {
+        var t = terms[i];
+        if (hay.indexOf(t) < 0) return 0;
+        if (title.indexOf(t) > -1) s += 6;
+        if (head.indexOf(t) > -1) s += 4;
+        if (title === t || head === t) s += 6;
+        s += 1;
+      }
+      return s;
+    }
+
+    function snippet(entry, terms) {
+      var text = entry.x || '';
+      var low = fold(text);
+      var pos = -1;
+      for (var i = 0; i < terms.length && pos < 0; i++) pos = low.indexOf(terms[i]);
+      if (pos < 0) return text.slice(0, 110);
+      var start = Math.max(0, pos - 45);
+      var piece = text.slice(start, start + 120);
+      return (start > 0 ? '…' : '') + piece + (start + 120 < text.length ? '…' : '');
+    }
+
+    function mark(text, terms) {
+      var out = escapeHtml(text);
+      terms.forEach(function (t) {
+        if (t.length < 2) return;
+        out = out.replace(new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig'), '<mark>$1</mark>');
+      });
+      return out;
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+    }
+
+    function render(q) {
+      var terms = fold(q).split(/\s+/).filter(Boolean);
+      if (!terms.length) { hide(); return; }
+      items = index.map(function (e) { return { e: e, s: score(e, terms) }; })
+        .filter(function (r) { return r.s > 0; })
+        .sort(function (a, b) { return b.s - a.s; })
+        .slice(0, 8);
+      active = -1;
+      if (!items.length) {
+        box.innerHTML = '<div class="suggest__empty">Nothing on this site matches “' + escapeHtml(q) +
+          '”. Press Enter to search the Congregation’s main site.</div>';
+      } else {
+        box.innerHTML = items.map(function (r, i) {
+          var e = r.e;
+          var where = e.s === e.t ? e.s : e.s + ' › ' + e.t;
+          return '<a class="suggest__item" role="option" id="sg-' + i + '" href="' + e.u + '">' +
+            '<span class="suggest__title">' + mark(e.h || e.t, terms) + '</span>' +
+            '<span class="suggest__where">' + escapeHtml(where) + '</span>' +
+            (e.x ? '<span class="suggest__text">' + mark(snippet(e, terms), terms) + '</span>' : '') +
+            '</a>';
+        }).join('');
+      }
+      box.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+
+    function hide() {
+      box.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+      active = -1;
+    }
+
+    function setActive(n) {
+      var links = box.querySelectorAll('.suggest__item');
+      if (!links.length) return;
+      active = (n + links.length) % links.length;
+      Array.prototype.forEach.call(links, function (l, i) {
+        l.classList.toggle('is-active', i === active);
+      });
+      input.setAttribute('aria-activedescendant', 'sg-' + active);
+    }
+
+    var timer;
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      var q = input.value.trim();
+      if (q.length < 2) { hide(); return; }
+      timer = setTimeout(function () { load().then(function () { render(q); }); }, 120);
+    });
+    input.addEventListener('focus', function () { load(); if (input.value.trim().length >= 2 && items.length) box.hidden = false; });
+    input.addEventListener('keydown', function (ev) {
+      if (box.hidden) return;
+      if (ev.key === 'ArrowDown') { ev.preventDefault(); setActive(active + 1); }
+      else if (ev.key === 'ArrowUp') { ev.preventDefault(); setActive(active - 1); }
+      else if (ev.key === 'Escape') { hide(); }
+    });
+    form.addEventListener('submit', function (ev) {
+      if (!items.length) return;                 /* fall through to Google */
+      ev.preventDefault();
+      window.location.href = items[active > -1 ? active : 0].e.u;
+    });
+    document.addEventListener('click', function (ev) {
+      if (!form.contains(ev.target)) hide();
+    });
   }
 
   /* The static site has no mail server: the contact form composes a message

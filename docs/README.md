@@ -14,6 +14,7 @@ docs/
   js/site.js          navigation drawer, footer links, contact form,
                       search suggestions, lazy page parts
   js/reader.js        the in-page PDF reader
+  js/lightbox.js      the image viewer (prev / next through the page's photos)
   js/map.js           the interactive map layer
   parts/              the later parts of long pages, fetched on scroll
   search-index.json   what the search box suggests from
@@ -145,6 +146,12 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   snippet. Arrow keys move, Enter opens the highlighted (or first) match; with
   no match, Enter falls through to the Google site-search of the live site as
   before. The index is rebuilt with the pages.
+- **Image viewer** — tapping any photograph (figures, gallery items, the
+  hero) opens it full-screen with its caption and position ("3 / 30");
+  previous / next move through every photograph on the page in reading
+  order, by button, arrow key or swipe, wrapping at the ends. Photographs in
+  a part loaded later join the sequence, since the set is gathered on each
+  open. Escape, the close button or the backdrop closes it.
 - **Contact map** — a Google Maps embed of Via Paolo III 16 (the keyless
   `output=embed` form, no API key needed) with an "Open in Google Maps" row
   beneath it.

@@ -605,6 +605,7 @@ def shell(label, title, body, crumbs, description=''):
 
 <script src="js/site.js"></script>
 <script src="js/reader.js" defer></script>
+<script src="js/lightbox.js" defer></script>
 </body>
 </html>
 '''

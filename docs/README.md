@@ -74,8 +74,11 @@ What the generated pages do that the WordPress site did differently:
   content on the live site either. They show one line saying the Congregation
   has not yet published content for them.
 - Home now links "Her life and mission", the Explore rows and the news
-  items to real pages; the three news items are the newest entries of the
-  live site's News and Bulletins pages, not the design's placeholders.
+  items to real pages. The three "Latest news" items are generated on each
+  build from the newest dated entries of Bulletins and Current news (a
+  bulletin's date from its heading, a news item's from the upload month of
+  its first photo or video) and written between the `<!-- latest-news -->`
+  markers in `index.html`.
 
 To preview locally: `python3 -m http.server 8000` then open <http://localhost:8000>.
 (Opening `index.html` by double-click also works.)

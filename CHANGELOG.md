@@ -61,3 +61,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 38. **Document cards (site build)**: the "Read online" button was removed where the cover already opens the reader; only "Download PDF" remains beneath the cover.
 
 39. **Bulletin no. 13 (site build)**: the mirror's Bulletins page was refreshed from the live site, which had gained Bulletin no. 13 – September 2026 after the mirror was taken; its PDF and cover were fetched and the page rebuilt (12 issues; no. 5 was never published).
+
+40. **Latest news on Home (site build)**: the three items are now generated from the newest dated entries of Bulletins and Current news on every build; currently Bulletin no. 13 (Sept 2026), Vocations Awareness Week (Aug 2026), Saint Emilie's room (Jul 2026).

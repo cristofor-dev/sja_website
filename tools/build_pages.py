@@ -898,6 +898,59 @@ def build_section(label, filename, mirror_dir, children, crumbs, intro_html=''):
         f.write(page)
 
 
+MONTHS = {m: i for i, m in enumerate(['january', 'february', 'march', 'april', 'may', 'june', 'july',
+                                      'august', 'september', 'october', 'november', 'december'], start=1)}
+MONTH_NAMES = {v: k.capitalize() for k, v in MONTHS.items()}
+
+
+def latest_items():
+    """The newest dated items across Bulletins and Current news, for Home."""
+    items = []
+    entry, _, _ = read_entry('bulletins')
+    for h in entry.find_all(['h4', 'h5', 'h6']):
+        text = h.get_text(' ', strip=True)
+        m = re.search(r'Bulletin no\.\s*(\d+)\s*[–-]\s*([A-Za-z]+)\s+(\d{4})', text)
+        if m and m.group(2).lower() in MONTHS:
+            items.append(((int(m.group(3)), MONTHS[m.group(2).lower()]), f'Bulletin no. {m.group(1)} available to read', 'bulletins.html'))
+    entry, _, _ = read_entry('current-news')
+    for h in entry.find_all(['h3', 'h4', 'h5', 'h6']):
+        title = h.get_text(' ', strip=True)
+        if not title:
+            continue
+        # the item's date is the upload month of the first media that follows its heading
+        date = None
+        for el in h.next_elements:
+            if isinstance(el, Tag) and el.name in ('h3', 'h4', 'h5', 'h6') and el is not h:
+                break
+            if isinstance(el, Tag) and el.name in ('img', 'video', 'a', 'source'):
+                m = re.search(r'uploads/(\d{4})/(\d{2})/', el.get('src') or el.get('href') or '')
+                if m:
+                    date = (int(m.group(1)), int(m.group(2)))
+                    break
+        if date:
+            items.append((date, title, 'current-news.html'))
+    items.sort(key=lambda x: x[0], reverse=True)
+    return items[:3]
+
+
+def update_home_news():
+    """Rewrite the Latest news list on Home between its marker comments."""
+    path = os.path.join(DOCS, 'index.html')
+    with open(path, encoding='utf-8') as f:
+        page = f.read()
+    start, end = '<!-- latest-news -->', '<!-- /latest-news -->'
+    if start not in page:
+        return
+    rows = []
+    for (year, month), title, href in latest_items():
+        rows.append(f'    <div class="news-item">\n      <div class="news-item__date">{MONTH_NAMES[month]} {year}</div>\n'
+                    f'      <a class="news-item__title" href="{href}">{html.escape(title)}</a>\n    </div>')
+    block = start + '\n' + '\n'.join(rows) + '\n    ' + end
+    page = page[:page.index(start)] + block + page[page.index(end) + len(end):]
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(page)
+
+
 def main():
     shutil.rmtree(PARTS_DIR, ignore_errors=True)   # parts are regenerated in full
     os.makedirs(MEDIA_DIR, exist_ok=True)
@@ -952,6 +1005,7 @@ def main():
     import json
     with open(os.path.join(DOCS, 'search-index.json'), 'w', encoding='utf-8') as f:
         json.dump(SEARCH_INDEX, f, ensure_ascii=False, separators=(',', ':'))
+    update_home_news()
     for name in ('index.html', 'congregation.html', 'where-we-are.html'):
         path = os.path.join(DOCS, name)
         with open(path, encoding='utf-8') as f:

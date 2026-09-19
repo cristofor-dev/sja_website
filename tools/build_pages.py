@@ -552,7 +552,23 @@ SEARCH_FORM = '''    <form class="bar__search" role="search" action="https://www
     </form>'''
 
 
+def asset_version():
+    """Short hash of the shared CSS/JS, appended as ?v= so browsers and the
+    CDN drop stale copies after a change."""
+    h = hashlib.md5()
+    for name in ('css/style.css', 'js/site.js', 'js/reader.js', 'js/lightbox.js'):
+        with open(os.path.join(DOCS, name), 'rb') as f:
+            h.update(f.read())
+    return h.hexdigest()[:8]
+
+
+VERSION = None
+
+
 def shell(label, title, body, crumbs, description=''):
+    global VERSION
+    if VERSION is None:
+        VERSION = asset_version()
     crumb_html = '<a href="index.html">Home</a>'
     for i, (text, href) in enumerate(crumbs):
         crumb_html += '\n    <span class="sep">»</span>\n    '
@@ -568,7 +584,7 @@ def shell(label, title, body, crumbs, description=''):
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v={VERSION}">
 </head>
 <body data-page="{html.escape(label, quote=True)}">
 
@@ -603,9 +619,9 @@ def shell(label, title, body, crumbs, description=''):
 
 </div>
 
-<script src="js/site.js"></script>
-<script src="js/reader.js" defer></script>
-<script src="js/lightbox.js" defer></script>
+<script src="js/site.js?v={VERSION}"></script>
+<script src="js/reader.js?v={VERSION}" defer></script>
+<script src="js/lightbox.js?v={VERSION}" defer></script>
 </body>
 </html>
 '''
@@ -691,6 +707,75 @@ def chunk_content(filename, content_html):
     return '\n'.join(blocks[:FIRST_BLOCKS]) + '\n' + sentinel
 
 
+def group_documents(content_html):
+    """A cover image followed by a PDF button becomes a document card: the
+    cover opens the reader, and Read / Download buttons sit beneath it. A PDF
+    button on its own becomes the same pair of buttons."""
+    soup = BeautifulSoup(content_html, 'html.parser')
+    nodes = [c for c in soup.children if isinstance(c, Tag)]
+    out, i = [], 0
+
+    def pdf_link(node):
+        """The file button of a block: a PDF, an image file, or a dead link."""
+        a = node.find('a', class_='btn--doc') if node.name == 'p' else None
+        if a is None:
+            return None
+        href = a.get('href', '').lower().split('?')[0]
+        return a if href == '' or href.endswith(('.pdf', '.png', '.jpg', '.jpeg')) else None
+
+    def card(title, fig, a):
+        href = a['href']
+        is_pdf = href.lower().endswith('.pdf')
+        local = href.startswith('assets/')
+        name = html.escape(title or re.sub(r'\s*\((PDF)\)\s*$', '', a.get_text(strip=True)))
+        img = fig.find('img') if fig is not None else None
+        if img is not None:
+            img['loading'] = 'lazy'
+        if not href:
+            # the site links nothing here: show the cover (it opens in the viewer) and say so
+            cover = f'<figure class="doc__cover doc__cover--still">{img}</figure>' if img is not None else ''
+            head = f'<div class="doc__title">{name}</div>' if title else ''
+            return (f'<div class="doc">{cover}<div class="doc__body">{head}'
+                    f'<p class="doc__note">The file for this issue is not yet available.</p></div></div>')
+        if img is not None and is_pdf and local:
+            cover = (f'<a class="doc__cover" href="{href}" data-title="{name}" aria-label="Read {name}">'
+                     f'{img}<span class="doc__badge">Read</span></a>')
+        elif img is not None:
+            cover = f'<figure class="doc__cover doc__cover--still">{img}</figure>'
+        else:
+            cover = ''
+        head = f'<div class="doc__title">{name}</div>' if title else ''
+        if is_pdf:
+            read = (f'<a class="btn doc__read" href="{href}" data-title="{name}">Read online</a>' if local
+                    else f'<a class="btn doc__read" href="{href}" rel="noopener">Open</a>')
+            dl = f'<a class="btn btn--ghost doc__download" href="{href}" download>Download PDF</a>'
+        else:
+            read = ''
+            dl = f'<a class="btn btn--ghost doc__download" href="{href}" download rel="noopener">Download image</a>'
+        return f'<div class="doc{"" if img is not None else " doc--bare"}">{cover}<div class="doc__body">{head}<div class="doc__actions">{read}{dl}</div></div></div>'
+
+    while i < len(nodes):
+        n = nodes[i]
+        title = None
+        fig = None
+        j = i
+        if n.name == 'h4' and j + 1 < len(nodes):
+            title = n.get_text(' ', strip=True)
+            j += 1
+        if nodes[j].name == 'figure' and nodes[j].find('img') and j + 1 < len(nodes) and pdf_link(nodes[j + 1]):
+            fig = nodes[j]
+            out.append(card(title, fig, pdf_link(nodes[j + 1])))
+            i = j + 2
+            continue
+        if pdf_link(nodes[j]) and (title is None or j == i + 1):
+            out.append(card(title, None, pdf_link(nodes[j])))
+            i = j + 1
+            continue
+        out.append(str(n))
+        i += 1
+    return '\n'.join(out)
+
+
 def index_page(label, filename, section, content_html):
     """Add one search entry per heading-delimited passage of a page."""
     soup = BeautifulSoup(content_html, 'html.parser')
@@ -760,7 +845,7 @@ def build_page(label, filename, mirror_dir, kind, crumbs, siblings_card, descrip
         if 'video-offsite' in conv.notes:
             content += '\n<p class="note">Videos on this page play from the Congregation\'s main website.</p>'
         index_page(label, filename, crumbs[0][0], content)
-        body = title_block(title, chunk_content(filename, content))
+        body = title_block(title, chunk_content(filename, group_documents(content)))
 
     if siblings_card:
         body += '\n\n' + siblings_card
@@ -780,6 +865,7 @@ def build_section(label, filename, mirror_dir, children, crumbs, intro_html=''):
 
 
 def main():
+    shutil.rmtree(PARTS_DIR, ignore_errors=True)   # parts are regenerated in full
     os.makedirs(MEDIA_DIR, exist_ok=True)
     os.makedirs(DOCS_DIR, exist_ok=True)
     written = []
@@ -832,7 +918,14 @@ def main():
     import json
     with open(os.path.join(DOCS, 'search-index.json'), 'w', encoding='utf-8') as f:
         json.dump(SEARCH_INDEX, f, ensure_ascii=False, separators=(',', ':'))
-    print(f'{len(written)} pages written, {len(SEARCH_INDEX)} search entries')
+    for name in ('index.html', 'congregation.html', 'where-we-are.html'):
+        path = os.path.join(DOCS, name)
+        with open(path, encoding='utf-8') as f:
+            page = f.read()
+        page = re.sub(r'(href="css/style\.css|src="js/[a-z]+\.js)(\?v=[0-9a-f]+)?"', r'\1?v=' + VERSION + '"', page)
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(page)
+    print(f'{len(written)} pages written, {len(SEARCH_INDEX)} search entries, assets v{VERSION}')
     for f, notes in sorted(report.items()):
         if notes:
             print(f'  {f}: ' + ', '.join(f'{n}×{notes.count(n)}' for n in sorted(set(notes))))

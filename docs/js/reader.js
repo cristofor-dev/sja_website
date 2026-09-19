@@ -163,7 +163,7 @@
   /* Delegated so that links added later (lazily loaded parts) work too. */
   document.addEventListener('click', function (e) {
     var a = e.target.closest && e.target.closest('a[href]');
-    if (!a || !isLocalPdf(a) || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    if (!a || !isLocalPdf(a) || a.hasAttribute('download') || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
     e.preventDefault();
     var title = a.getAttribute('data-title') || nearestHeading(a) || a.textContent.replace(/\s*\(PDF\)\s*$/, '').trim();
     open(a.href, title);

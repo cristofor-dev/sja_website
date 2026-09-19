@@ -127,6 +127,13 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
 
 ## Reading, searching, long pages, the map
 
+- **Document cards** — a cover image followed by a file button in the
+  WordPress content becomes one card: the cover (with a "Read" badge) opens
+  the PDF in the reader, and beneath it sit "Read online" and "Download PDF"
+  buttons; the title above the cover in the source becomes the card's title.
+  A bare file button becomes the same pair of buttons; a button that links to
+  an image file gets "Download image" only; an empty link (Bulletin no. 7 on
+  the live site) shows the cover and says the file is not yet available.
 - **PDF reader** — a link to a PDF served by this site opens in a
   full-screen reader (`js/reader.js`, pdf.js 4.10 from cdnjs, fetched on first
   use) with a page counter and a Download button; pages render as they are
@@ -156,6 +163,13 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
 - **Contact map** — a Google Maps embed of Via Paolo III 16 (the keyless
   `output=embed` form, no API key needed) with an "Open in Google Maps" row
   beneath it.
+
+## Cache busting
+
+`css/style.css` and the `js/` files are referenced with `?v=<hash>` where
+the hash is taken from their contents at build time (the generator stamps
+the three hand-built pages too), so a change to any of them reaches browsers
+and the CDN on the next deploy without a hard refresh.
 
 ## Deliberate differences from the design canvas
 

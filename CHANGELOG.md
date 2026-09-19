@@ -59,3 +59,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 37. **PDF first page as cover (site build)**: a document card without a cover in the source (Safeguarding) now shows the PDF's own first page, rendered at build time.
 
 38. **Document cards (site build)**: the "Read online" button was removed where the cover already opens the reader; only "Download PDF" remains beneath the cover.
+
+39. **Bulletin no. 13 (site build)**: the mirror's Bulletins page was refreshed from the live site, which had gained Bulletin no. 13 – September 2026 after the mirror was taken; its PDF and cover were fetched and the page rebuilt (12 issues; no. 5 was never published).

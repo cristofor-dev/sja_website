@@ -63,3 +63,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 39. **Bulletin no. 13 (site build)**: the mirror's Bulletins page was refreshed from the live site, which had gained Bulletin no. 13 – September 2026 after the mirror was taken; its PDF and cover were fetched and the page rebuilt (12 issues; no. 5 was never published).
 
 40. **Latest news on Home (site build)**: the three items are now generated from the newest dated entries of Bulletins and Current news on every build; currently Bulletin no. 13 (Sept 2026), Vocations Awareness Week (Aug 2026), Saint Emilie's room (Jul 2026).
+
+41. **Contact call-out on Home (site build)**: the Contact row in Explore became a deep-blue panel between Explore and Latest news — "Get in touch", phone, e-mail and address with icons, a white "Write to us" button and a "Find us on the map" link to the map on the Contact page (two-column on desktop).

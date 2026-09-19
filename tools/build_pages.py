@@ -848,7 +848,7 @@ def index_existing(label, filename, section):
 
 
 CONTACT_MAP = '''
-  <div class="card wrap card--map">
+  <div class="card wrap card--map" id="map">
     <div class="card__subhead">Where to find us</div>
     <div class="map-embed">
       <iframe src="https://www.google.com/maps?q=Via+Paolo+III+16,+00165+Roma,+Italia&z=16&output=embed" width="600" height="400" style="border:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="Map showing the Generalate, Via Paolo III 16, Rome"></iframe>

@@ -69,3 +69,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 42. **Contact panel folded into the footer (site build)**: the Home call-out became the top half of the shared footer on every page — contact details, "Write to us", then name, section links and copyright on a darker band.
 
 43. **Footer as one block (site build)**: the darker lower band is gone — one gradient, thin rules between the contact part, the name and links, and the copyright; "We are happy to hear from you" and the Congregation's name share one size (20px, 22px on desktop) and every other line is 15px.
+
+44. **Footer menu (site build)**: the Congregation's name was dropped from the footer; the section links are pill-shaped buttons with a hover state and sit on one row with the (shortened) copyright line on desktop.

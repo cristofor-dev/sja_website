@@ -170,7 +170,8 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
 - **Footer** — on every page the footer opens with the contact panel
   ("Get in touch", phone, e-mail and address with icons, a "Write to us"
   button; the address links to the map on the Contact page) and closes with
-  the Congregation's name, the section links and the copyright line.
+  the section links (pill-shaped on hover) and the copyright line — on one
+  row from 1024px, stacked on phones.
 - **Contact map** — a Google Maps embed of Via Paolo III 16 (the keyless
   `output=embed` form, no API key needed) with an "Open in Google Maps" row
   beneath it.

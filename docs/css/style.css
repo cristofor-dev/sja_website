@@ -622,23 +622,32 @@ blockquote.quote cite {
   border-top: 1px solid rgba(255, 255, 255, .18);
 }
 
-.foot__name {
-  font-family: var(--serif);
-  font-size: 20px;
-  line-height: 1.35;
-  margin-bottom: 14px;
-}
-
 .foot__links {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 22px;
-  margin-bottom: 18px;
+  gap: 6px 4px;
+  margin: 0 -10px 16px;
 }
 
-.foot__links a { font-size: 15px; color: var(--sja-200); text-decoration: none; }
-.foot__links a:hover { color: #ffffff; }
-.foot__links span.is-pending { font-size: 15px; color: var(--sja-200); opacity: .5; }
+.foot__links a,
+.foot__links span.is-pending {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--sja-200);
+  text-decoration: none;
+  transition: background .15s ease, color .15s ease;
+}
+
+.foot__links a:hover,
+.foot__links a:focus-visible {
+  color: #ffffff;
+  background: rgba(255, 255, 255, .12);
+  outline: none;
+}
+
+.foot__links span.is-pending { opacity: .5; }
 
 .foot__legal {
   padding-top: 14px;
@@ -1074,9 +1083,18 @@ body.is-locked { overflow: hidden; }
   .card__subhead { padding: 14px 28px; font-size: 16px; }
   .card { margin: 0 28px 28px; }
   .foot__contact { padding: 44px 44px 36px; column-gap: 48px; }
-  .foot__title, .foot__name { font-size: 22px; }
-  .foot__bottom { margin: 0 44px; padding: 28px 0 32px; }
-  .foot__links { gap: 12px 28px; }
+  .foot__title { font-size: 22px; }
+  .foot__bottom {
+    margin: 0 44px;
+    padding: 20px 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .foot__links { margin: 0 -10px; gap: 4px 2px; }
+  .foot__legal { padding: 0; border: 0; white-space: nowrap; }
 
   /* Home — Welcome text in column one, the foundress card alongside it.
      The source order is unchanged, so phones still show the portrait

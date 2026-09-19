@@ -658,9 +658,8 @@ def shell(label, title, body, crumbs, description=''):
       </ul>
     </div>
     <div class="foot__bottom">
-      <div class="foot__name">Sisters of Saint Joseph<br>of the Apparition</div>
       <div class="foot__links" data-footer-links></div>
-      <div class="foot__legal">Copyright © 2026 Sisters of Saint Joseph of the Apparition</div>
+      <div class="foot__legal">© 2026 Sisters of Saint Joseph of the Apparition</div>
     </div>
   </footer>
 

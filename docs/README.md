@@ -52,10 +52,11 @@ What the generated pages do that the WordPress site did differently:
   143MB, above GitHub's 100MB limit), so the `<video>` elements play from
   `https://www.stjoseph-apparition.org/wp-content/...`. Pages that do so say
   it in a note at the end. The Hymn page is nothing but one such video.
-- **PDFs** — the 16 the mirror holds (bulletins 11–12, the 2025 chapter
-  updates, the profession reflections, the safeguarding policy) are served
-  locally; the 18 it does not (bulletins 1–10, the 2024 news PDFs) link to the
-  live site.
+- **PDFs** — all 34 (bulletins 1–12, the 2024 news reflections, the 2025
+  chapter updates, the profession reflections, the safeguarding policy) are
+  served from `assets/docs/` (≈ 95 MB). The 18 the original mirror lacked
+  were fetched from the live site on 19 Sep 2026 into the mirror's
+  `wp-content/uploads/` paths, so the generator picks them up like the rest.
 - **Members, Obituaries, Letters, Documents, Voices of the Sisters** are
   behind a login on the live site. A static site cannot do that, so each page
   explains that the content is for members and links to the live site's
@@ -129,10 +130,10 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
 - **PDF reader** — a link to a PDF served by this site opens in a
   full-screen reader (`js/reader.js`, pdf.js 4.10 from cdnjs, fetched on first
   use) with a page counter and a Download button; pages render as they are
-  scrolled to. Such links are labelled "Read (PDF)". PDFs still on the live
-  site keep their "Download" label and open there — its server sends no CORS
-  header, so pdf.js cannot read them. Without JavaScript the link is a plain
-  download either way.
+  scrolled to. Such links are labelled "Read (PDF)". (A PDF left on the live
+  site would keep a "Download" label and open there, since that server sends
+  no CORS header; none remain at present.) Without JavaScript the link is a
+  plain download either way.
 - **Long pages load as you scroll** — the generator keeps the first ten
   blocks of a page and writes the rest as `parts/<page>-N.html` (ten blocks
   each). A sentinel at the end of the page fetches the next part when it

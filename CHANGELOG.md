@@ -51,3 +51,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 33. **Reader, search, lazy parts, map (site build)**: PDFs served by the site open in an in-page reader (pdf.js) instead of downloading; the search box is on every page and suggests pages and passages from a content index built with the pages; pages over 11KB are split into parts fetched as the reader scrolls (Current news, 9 parts); the Contact page carries a Google Maps embed of the Generalate with an "Open in Google Maps" link.
 
 34. **Image viewer (site build)**: tapping a photograph opens it full-screen with caption and count; previous/next by button, arrow key or swipe through every photograph on the page.
+
+35. **All PDFs served locally (site build)**: the 18 PDFs the mirror lacked (bulletins 1–10 and the 2024 news reflections) were fetched from the live site, so every PDF button on the site now reads "Read (PDF)" and opens in the reader.

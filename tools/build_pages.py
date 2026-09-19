@@ -775,9 +775,14 @@ def group_documents(content_html):
             cover = ''
         head = f'<div class="doc__title">{name}</div>' if (title or img is not None) else ''
         if is_pdf:
-            read = (f'<a class="btn doc__read" href="{href}" data-title="{name}">Read online</a>' if local
-                    else f'<a class="btn doc__read" href="{href}" rel="noopener">Open</a>')
-            dl = f'<a class="btn btn--ghost doc__download" href="{href}" download>Download PDF</a>'
+            # the cover already opens the reader, so a Read button only appears when there is no cover
+            if img is not None and local:
+                read = ''
+            elif local:
+                read = f'<a class="btn doc__read" href="{href}" data-title="{name}">Read online</a>'
+            else:
+                read = f'<a class="btn doc__read" href="{href}" rel="noopener">Open</a>'
+            dl = f'<a class="btn{" btn--ghost" if read else ""} doc__download" href="{href}" download>Download PDF</a>'
         else:
             read = ''
             dl = f'<a class="btn btn--ghost doc__download" href="{href}" download rel="noopener">Download image</a>'

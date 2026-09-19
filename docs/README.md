@@ -129,8 +129,9 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
 
 - **Document cards** — a cover image followed by a file button in the
   WordPress content becomes one card: the cover (with a "Read" badge) opens
-  the PDF in the reader, and beneath it sit "Read online" and "Download PDF"
-  buttons; the title above the cover in the source becomes the card's title.
+  the PDF in the reader, and beneath it sits a "Download PDF" button; the
+  title above the cover in the source becomes the card's title. A "Read
+  online" button appears only on a card that has no cover to click.
   A bare file button gets a cover rendered from the PDF's own first page
   (macOS Quick Look → WebP, cached in `assets/media/*-cover.webp`; on a
   machine without `qlmanage` the card simply has no cover) and the same pair

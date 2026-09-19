@@ -57,3 +57,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 36. **Document cards (site build)**: cover + PDF button pairs became cards — the cover opens the reader, "Read online" and "Download PDF" sit beneath it; image-file and dead links handled; stale lazily-loaded parts are cleared on each build; CSS/JS links carry a content hash.
 
 37. **PDF first page as cover (site build)**: a document card without a cover in the source (Safeguarding) now shows the PDF's own first page, rendered at build time.
+
+38. **Document cards (site build)**: the "Read online" button was removed where the cover already opens the reader; only "Download PDF" remains beneath the cover.

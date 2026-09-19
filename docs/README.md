@@ -131,7 +131,10 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   WordPress content becomes one card: the cover (with a "Read" badge) opens
   the PDF in the reader, and beneath it sit "Read online" and "Download PDF"
   buttons; the title above the cover in the source becomes the card's title.
-  A bare file button becomes the same pair of buttons; a button that links to
+  A bare file button gets a cover rendered from the PDF's own first page
+  (macOS Quick Look → WebP, cached in `assets/media/*-cover.webp`; on a
+  machine without `qlmanage` the card simply has no cover) and the same pair
+  of buttons; a button that links to
   an image file gets "Download image" only; an empty link (Bulletin no. 7 on
   the live site) shows the cover and says the file is not yet available.
 - **PDF reader** — a link to a PDF served by this site opens in a

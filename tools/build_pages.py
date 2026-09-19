@@ -189,6 +189,29 @@ def document_asset(url):
     return 'assets/docs/' + urllib.parse.quote(name), True
 
 
+def pdf_cover(href):
+    """Render page 1 of a locally served PDF as a WebP cover (via macOS Quick
+    Look); returns (href, w, h) or None when it cannot be rendered."""
+    src = os.path.join(DOCS, urllib.parse.unquote(href))
+    if not os.path.isfile(src) or not shutil.which('qlmanage'):
+        return None
+    stem = re.sub(r'[^A-Za-z0-9]+', '-', os.path.splitext(os.path.basename(src))[0]).strip('-').lower()
+    name = unique_name(stem + '-cover', '.webp', src)
+    out = os.path.join(MEDIA_DIR, name)
+    if not os.path.exists(out):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            subprocess.run(['qlmanage', '-t', '-s', '1448', '-o', tmp, src],
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            png = os.path.join(tmp, os.path.basename(src) + '.png')
+            if not os.path.exists(png):
+                return None
+            subprocess.run(['cwebp', '-quiet', '-q', '82', '-m', '6', '-resize', '724', '0', png, '-o', out], check=True)
+    with Image.open(out) as im:
+        w, h = im.size
+    return 'assets/media/' + name, w, h
+
+
 # ── caption from a Smart Slider slide title ("StLouisHospitalJerusalem") ──
 
 CONNECTORS = ('inthe', 'ofthe', 'in', 'of', 'the', 'and', 'de', 'des', 'du')
@@ -727,8 +750,14 @@ def group_documents(content_html):
         href = a['href']
         is_pdf = href.lower().endswith('.pdf')
         local = href.startswith('assets/')
-        name = html.escape(title or re.sub(r'\s*\((PDF)\)\s*$', '', a.get_text(strip=True)))
+        name = html.escape(title or re.sub(r'[-_]+', ' ', re.sub(r'\s*\((PDF)\)\s*$', '', a.get_text(strip=True))))
         img = fig.find('img') if fig is not None else None
+        if img is None and is_pdf and local:
+            # no cover in the source: use the document's own first page
+            cov = pdf_cover(href)
+            if cov:
+                img = BeautifulSoup(f'<img src="{cov[0]}" alt="First page of {name}" width="{cov[1]}" height="{cov[2]}">',
+                                    'html.parser').img
         if img is not None:
             img['loading'] = 'lazy'
         if not href:
@@ -744,7 +773,7 @@ def group_documents(content_html):
             cover = f'<figure class="doc__cover doc__cover--still">{img}</figure>'
         else:
             cover = ''
-        head = f'<div class="doc__title">{name}</div>' if title else ''
+        head = f'<div class="doc__title">{name}</div>' if (title or img is not None) else ''
         if is_pdf:
             read = (f'<a class="btn doc__read" href="{href}" data-title="{name}">Read online</a>' if local
                     else f'<a class="btn doc__read" href="{href}" rel="noopener">Open</a>')

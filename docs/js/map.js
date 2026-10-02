@@ -99,6 +99,15 @@
      chips under the map remain the 44px path to every country at every width. */
   var UNGROUP_MIN_PX = 26;
 
+  /* countries of earlier foundations (pale blue, no community today), from
+     js/earlier-foundations.js: hover or tap shows the name and year only */
+  var EARLIER = window.SJA_EARLIER_FOUNDATIONS || [];
+  var EARLIER_ALIASES = {
+    'United States': ['USA', 'US', 'America'],
+    'Turkey': ['Türkiye'],
+    'Former Yugoslavia': ['Yugoslavia', 'Serbia', 'Croatia', 'Bosnia', 'Slovenia', 'Macedonia', 'Montenegro', 'Kosovo']
+  };
+
   function has(name) { return (LOCATIONS[name] || []).length > 0; }
 
   /* Which countries sit too close to a neighbour to carry their own marker.
@@ -148,6 +157,7 @@
     selected: null,
     cluster: null,
     community: null,
+    earlier: null,          /* { name, pinned } — the earlier foundation shown */
     mapW: 390,
     pan: { x: 0, y: 0 },
     dragging: false
@@ -159,6 +169,7 @@
   var badgeCountEls = {};
   var chipEls = {};
   var leaderEls = {};
+  var earlierEls = {};
   var drag = null;
   var dragged = false;
   var panelKey = null;
@@ -256,6 +267,7 @@
 
   function selectCountry(name) {
     if (!COUNTRY_POINTS[name]) return;
+    state.earlier = null;
     state.selected = name;
     state.hoverName = name;
     state.community = null;
@@ -266,6 +278,7 @@
   }
 
   function resetView() {
+    state.earlier = null;
     state.selected = null;
     state.hoverName = null;
     state.community = null;
@@ -275,6 +288,7 @@
   }
 
   function openCluster(key) {
+    state.earlier = null;
     state.cluster = key;
     state.selected = null;
     state.hoverName = null;
@@ -294,6 +308,44 @@
     if (state.selected) return;
     state.hoverName = null;
     render();
+  }
+
+  /* hover shows an earlier foundation for as long as the pointer is over it;
+     a tap pins it until the next tap, Escape, or a choice elsewhere */
+  function showEarlier(name, pinned) {
+    if (state.earlier && state.earlier.pinned && !pinned) return;
+    state.earlier = { name: name, pinned: !!pinned };
+    render();
+  }
+
+  function hideEarlier(force) {
+    if (!state.earlier || (state.earlier.pinned && !force)) return;
+    state.earlier = null;
+    render();
+  }
+
+  function buildEarlier() {
+    if (!el.earlier) return;
+    EARLIER.forEach(function (c) {
+      if (!c.d) return;
+      var path = document.createElementNS(SVG_NS, 'path');
+      path.setAttribute('d', c.d);
+      path.addEventListener('mouseenter', function () { showEarlier(c.name, false); });
+      path.addEventListener('mouseleave', function () { hideEarlier(false); });
+      path.addEventListener('click', function (event) {
+        if (dragged) return;
+        event.stopPropagation();
+        if (state.earlier && state.earlier.name === c.name && state.earlier.pinned) hideEarlier(true);
+        else showEarlier(c.name, true);
+      });
+      el.earlier.appendChild(path);
+      earlierEls[c.name] = path;
+    });
+  }
+
+  function earlierByName(name) {
+    for (var i = 0; i < EARLIER.length; i++) if (EARLIER[i].name === name) return EARLIER[i];
+    return null;
   }
 
   function openCommunity(name) {
@@ -449,6 +501,20 @@
 
   /* ── rendering ── */
 
+  /* The frame clips whatever overflows it, so keep the label inside: slide it
+     sideways near the edges, and drop it below the point when there is no
+     room above (Canada and the Arctic sit right under the top edge). */
+  function placeTip(xPct, yPct) {
+    var fw = el.frame.clientWidth, fh = el.frame.clientHeight;
+    var tw = el.tip.offsetWidth, th = el.tip.offsetHeight;
+    var x = xPct / 100 * fw, y = yPct / 100 * fh;
+    x = Math.max(tw / 2 + 4, Math.min(fw - tw / 2 - 4, x));
+    var above = el.tip.classList.contains('map-tip--earlier') ? th + 12 : th * 1.6;
+    el.tip.classList.toggle('map-tip--below', y - above < 4);
+    el.tip.style.left = x + 'px';
+    el.tip.style.top = y + 'px';
+  }
+
   function render() {
     var g = geometry();
     var v = g.v;
@@ -499,16 +565,28 @@
 
     /* tooltip */
     var name = state.hoverName;
+    var early = !name && state.earlier ? earlierByName(state.earlier.name) : null;
+    el.tip.classList.toggle('map-tip--earlier', !!early);
     if (name && COUNTRY_POINTS[name]) {
       var p = COUNTRY_POINTS[name];
       var year = COUNTRY_YEARS[name];
       el.tip.hidden = false;
       el.tip.textContent = year ? name + ' · ' + year : name;
-      el.tip.style.left = (v.tx + v.s * p[0]) + '%';
-      el.tip.style.top = (v.ty + v.s * p[1]) + '%';
+      placeTip(v.tx + v.s * p[0], v.ty + v.s * p[1]);
+    } else if (early) {
+      el.tip.hidden = false;
+      el.tip.textContent = early.year ? early.name + ' · ' + early.year : early.name;
+      var sub = document.createElement('span');
+      sub.className = 'map-tip__sub';
+      sub.textContent = 'Earlier foundation · no community today';
+      el.tip.appendChild(sub);
+      placeTip(v.tx + v.s * early.x, v.ty + v.s * early.y);
     } else {
       el.tip.hidden = true;
     }
+    Object.keys(earlierEls).forEach(function (key) {
+      earlierEls[key].classList.toggle('is-on', !!early && early.name === key);
+    });
 
     /* region chips follow the highlight */
     Object.keys(chipEls).forEach(function (key) {
@@ -653,6 +731,13 @@
         });
       });
     });
+    EARLIER.forEach(function (c) {
+      list.push({
+        kind: 'earlier', name: c.name, label: c.name,
+        where: 'Earlier foundation' + (c.year ? ', ' + c.year : '') + ' · no community today',
+        keys: [c.name].concat(EARLIER_ALIASES[c.name] || []).map(fold)
+      });
+    });
     return list;
   }
 
@@ -668,7 +753,7 @@
       else if ((' ' + key).indexOf(' ' + terms[0]) > -1) s = 2;
       best = Math.max(best, s);
     });
-    return best ? best * 2 + (entry.kind === 'country' ? 1 : 0) : 0;
+    return best ? best * 2 + (entry.kind === 'country' ? 1 : entry.kind === 'earlier' ? 0.5 : 0) : 0;
   }
 
   /* highlight the query terms in the label, matching accent-blind */
@@ -775,6 +860,11 @@
     closeSearch(true);
     if (entry.kind === 'country') {
       selectCountry(entry.name);
+    } else if (entry.kind === 'earlier') {
+      /* back to the world view, where every earlier foundation is in frame */
+      resetView();
+      showEarlier(entry.name, true);
+      revealMap();
     } else {
       selectCountry(entry.country);
       openCommunity(entry.name);
@@ -846,6 +936,7 @@
     el.sheetPhoto = document.getElementById('sheetPhoto');
     el.sheetIntro = document.getElementById('sheetIntro');
     el.sheetClose = document.getElementById('sheetClose');
+    el.earlier = document.getElementById('mapEarlier');
 
     el.search = document.getElementById('mapSearch');
     el.searchOpen = document.getElementById('mapSearchOpen');
@@ -855,6 +946,7 @@
     el.searchList = document.getElementById('mapSearchList');
 
     buildMarkers();
+    buildEarlier();
     buildRegions();
     bindSearch();
 
@@ -864,6 +956,8 @@
     el.frame.addEventListener('pointercancel', onPointerUp);
     el.frame.addEventListener('pointerleave', onPointerUp);
     el.frame.addEventListener('dblclick', function () { if (zoomed()) resetView(); });
+    /* a tap on the map away from an earlier foundation lets its label go */
+    el.frame.addEventListener('click', function () { if (!dragged) hideEarlier(true); });
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-reset-view]'), function (b) {
       b.addEventListener('click', resetView);
@@ -876,6 +970,7 @@
       if (event.key !== 'Escape') return;
       if (searchOpen()) closeSearch(true);
       else if (state.community) closeCommunity();
+      else if (state.earlier) hideEarlier(true);
       else if (zoomed()) resetView();
     });
 

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=905d9289">
+<link rel="stylesheet" href="css/style.css?v=b1d5c097">
 </head>
 <body data-page="Where we are">
 
@@ -58,6 +58,7 @@
     <div class="map-frame" id="mapFrame">
       <div class="map-zoom" id="mapZoom">
         <img src="assets/world-map-blue.svg" alt="World map with the twenty-four countries where the Sisters are present shaded in blue" width="1600" height="820">
+        <svg class="map-earlier" id="mapEarlier" viewBox="0 0 1600 820.4" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
       <svg class="map-leaders" id="mapLeaders" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
       <div class="map-marks" id="mapMarks"></div>
@@ -77,7 +78,7 @@
       </div>
       <div class="suggest map-search__list" id="mapSearchList" role="listbox" aria-label="Matching countries and communities" hidden></div>
     </div>
-    <div class="map-note">Deep blue: present today. Pale blue: countries of earlier foundations. The year shown on selection is the first foundation in that country. Tap a marker to see the communities there today; when zoomed in, drag to move the map and double-tap to return to the world.</div>
+    <div class="map-note">Deep blue: present today. Pale blue: countries of earlier foundations, with no community today; hover or tap one for its name and year. The year shown on selection is the first foundation in that country. Tap a marker to see the communities there today; when zoomed in, drag to move the map and double-tap to return to the world.</div>
   </div>
 
   <div class="card panel wrap" id="clusterPanel" hidden>
@@ -156,9 +157,10 @@
   </div>
 </div>
 
-<script src="js/site.js?v=905d9289"></script>
-<script src="js/reader.js?v=905d9289" defer></script>
-<script src="js/lightbox.js?v=905d9289" defer></script>
-<script src="js/map.js?v=905d9289"></script>
+<script src="js/site.js?v=b1d5c097"></script>
+<script src="js/reader.js?v=b1d5c097" defer></script>
+<script src="js/lightbox.js?v=b1d5c097" defer></script>
+<script src="js/earlier-foundations.js?v=b1d5c097"></script>
+<script src="js/map.js?v=b1d5c097"></script>
 </body>
 </html>

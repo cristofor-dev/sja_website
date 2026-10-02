@@ -579,7 +579,8 @@ def asset_version():
     """Short hash of the shared CSS/JS, appended as ?v= so browsers and the
     CDN drop stale copies after a change."""
     h = hashlib.md5()
-    for name in ('css/style.css', 'js/site.js', 'js/reader.js', 'js/lightbox.js', 'js/map.js'):
+    for name in ('css/style.css', 'js/site.js', 'js/reader.js', 'js/lightbox.js', 'js/map.js',
+                 'js/earlier-foundations.js'):
         with open(os.path.join(DOCS, name), 'rb') as f:
             h.update(f.read())
     return h.hexdigest()[:8]
@@ -1033,7 +1034,7 @@ def main():
         path = os.path.join(DOCS, name)
         with open(path, encoding='utf-8') as f:
             page = f.read()
-        page = re.sub(r'(href="css/style\.css|src="js/[a-z]+\.js)(\?v=[0-9a-f]+)?"', r'\1?v=' + VERSION + '"', page)
+        page = re.sub(r'(href="css/style\.css|src="js/[a-z-]+\.js)(\?v=[0-9a-f]+)?"', r'\1?v=' + VERSION + '"', page)
         with open(path, 'w', encoding='utf-8') as f:
             f.write(page)
     print(f'{len(written)} pages written, {len(SEARCH_INDEX)} search entries, assets v{VERSION}')

@@ -930,6 +930,30 @@ blockquote.quote cite {
 
 .map-tip[hidden] { display: none; }
 
+/* a country of an earlier foundation: name and year, then a quieter line */
+.map-tip--earlier { transform: translate(-50%, calc(-100% - 12px)); text-align: center; }
+.map-tip__sub { display: block; font-size: 11px; font-weight: 400; opacity: .8; }
+.map-tip.map-tip--below { transform: translate(-50%, 14px); }
+
+/* invisible hit shapes over the pale-blue countries of earlier foundations;
+   they move with the artwork and tint the country they are over */
+.map-earlier {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.map-earlier path {
+  fill: transparent;
+  fill-rule: evenodd;
+  pointer-events: visiblePainted;
+  transition: fill .15s ease;
+}
+
+.map-earlier path.is-on { fill: rgba(0, 48, 95, .16); }
+
 .map-note {
   border-radius: 0 0 10px 10px;
   padding: 10px 14px 12px;

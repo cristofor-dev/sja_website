@@ -1034,6 +1034,7 @@ blockquote.quote cite {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+  background: var(--sja-900);
 }
 
 .region__label {
@@ -1061,7 +1062,7 @@ blockquote.quote cite {
   box-shadow: 0 6px 14px -8px rgba(0, 49, 95, .6);
 }
 
-.chip.is-active { color: #ffffff; }
+.chip.is-active { background: var(--sja-900); color: #ffffff; }
 
 /* ── community sheet ── */
 

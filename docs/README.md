@@ -245,7 +245,8 @@ and the CDN on the next deploy without a hard refresh.
   reads exactly as its note says. (The handoff shaded presence by region, from
   `#004a9b` to `#75c2ec`; the lightest were too close to the pale blue of
   earlier foundations, so Australia read as "no community today".) The region
-  colours remain on the dots of the region list below. It stays vector because
+  list below the map uses the same deep blue for its dots and highlighted
+  chips; no colour stands for a region. It stays vector because
   the map zooms to 6x. A marker's position in `js/map.js` is
   `x% = (lon + 130) / 310 * 100` and
   `y% = (m(72) − m(lat)) / (m(72) − m(−47)) * 100`, with

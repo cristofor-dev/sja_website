@@ -4,16 +4,13 @@
 (function () {
   'use strict';
 
-  var EUROPE = '#004a9b', AFRICA = '#0a5ba8', MIDEAST = '#004aad',
-      ASIA = '#046bd2', LATAM = '#4a9fdd', OCEANIA = '#75c2ec';
-
   var REGIONS = [
-    { label: 'Europe', color: EUROPE, items: ['France', 'United Kingdom', 'Ireland', 'Italy', 'Malta', 'Greece', 'Cyprus', 'Romania'] },
-    { label: 'Africa', color: AFRICA, items: ['Tunisia', 'Ethiopia'] },
-    { label: 'Middle East', color: MIDEAST, items: ['Israel', 'Palestinian Territories', 'Syria', 'Lebanon', 'Jordan'] },
-    { label: 'Asia', color: ASIA, items: ['India', 'Myanmar', 'Thailand', 'Philippines', 'Singapore'] },
-    { label: 'Latin America', color: LATAM, items: ['Guatemala', 'Panama', 'Peru'] },
-    { label: 'Oceania', color: OCEANIA, items: ['Australia'] }
+    { label: 'Europe', items: ['France', 'United Kingdom', 'Ireland', 'Italy', 'Malta', 'Greece', 'Cyprus', 'Romania'] },
+    { label: 'Africa', items: ['Tunisia', 'Ethiopia'] },
+    { label: 'Middle East', items: ['Israel', 'Palestinian Territories', 'Syria', 'Lebanon', 'Jordan'] },
+    { label: 'Asia', items: ['India', 'Myanmar', 'Thailand', 'Philippines', 'Singapore'] },
+    { label: 'Latin America', items: ['Guatemala', 'Panama', 'Peru'] },
+    { label: 'Oceania', items: ['Australia'] }
   ];
 
   var LOCATIONS = {
@@ -384,7 +381,6 @@
       head.className = 'region__head';
       var swatch = document.createElement('span');
       swatch.className = 'region__swatch';
-      swatch.style.background = r.color;
       var label = document.createElement('span');
       label.className = 'region__label';
       label.textContent = r.label;
@@ -404,7 +400,7 @@
         chip.addEventListener('mouseenter', function () { focusCountry(name); });
         chip.addEventListener('mouseleave', function () { clearFocus(); });
         chips.appendChild(chip);
-        chipEls[name] = { chip: chip, color: r.color };
+        chipEls[name] = chip;
       });
 
       wrap.appendChild(head);
@@ -516,10 +512,7 @@
 
     /* region chips follow the highlight */
     Object.keys(chipEls).forEach(function (key) {
-      var c = chipEls[key];
-      var on = state.hoverName === key;
-      c.chip.classList.toggle('is-active', on);
-      c.chip.style.background = on ? c.color : '';
+      chipEls[key].classList.toggle('is-active', state.hoverName === key);
     });
 
     renderPanels(g.tight);

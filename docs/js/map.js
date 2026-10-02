@@ -237,6 +237,7 @@
     hoverBadge: null,       /* key of the group badge under the pointer or focus */
     mapW: 390,
     pan: { x: 0, y: 0 },
+    zoomBy: 1,              /* the visitor's own zoom, on top of the view chosen */
     dragging: false
   };
 
@@ -252,12 +253,18 @@
 
   /* ── zoom / pan transform, exactly as the design computed it ── */
 
-  function view() {
+  /* the zoom of the view chosen (world, group or country) and its centre */
+  function baseView() {
     var sel = state.selected;
     var cl = !sel && state.cluster ? clusterByKey(state.cluster) : null;
     var p = sel ? COUNTRY_POINTS[sel] : (cl ? clusterView(cl) : null);
-    if (!p) return { s: 1, tx: 0, ty: 0 };
-    var s = sel ? countryScale(sel) : p[2];
+    if (!p) return [50, 50, 1];
+    return [p[0], p[1], sel ? countryScale(sel) : p[2]];
+  }
+
+  function view() {
+    var p = baseView();
+    var s = Math.max(1, Math.min(MAX_ZOOM, p[2] * state.zoomBy));
     var clamp = function (v) { return Math.max(100 - 100 * s, Math.min(0, v)); };
     return {
       s: s,
@@ -266,13 +273,35 @@
     };
   }
 
-  function zoomed() { return !!(state.selected || state.cluster); }
+  function zoomed() { return !!(state.selected || state.cluster) || state.zoomBy > 1; }
+
+  /* the zoom buttons step by this much; pinch and Ctrl + scroll are free */
+  var ZOOM_STEP = 2;
+
+  /* zoom to s, keeping the map point under frame point (fx, fy) — in % of
+     the frame — where it is */
+  function zoomTo(s, fx, fy) {
+    var p = baseView(), v = view();
+    s = Math.max(1, Math.min(MAX_ZOOM, s));
+    if (Math.abs(s - v.s) < 1e-6) return;
+    var cx = (fx - v.tx) / v.s, cy = (fy - v.ty) / v.s;
+    state.zoomBy = s / p[2];
+    /* panned past the edge, the pan is clamped; restate it from where the
+       map really is so the next drag starts there */
+    state.pan = { x: fx - s * cx - 50 + s * p[0], y: fy - s * cy - 50 + s * p[1] };
+    hideEarlier(true);
+    render();
+  }
+
+  function zoomStep(factor) { zoomTo(view().s * factor, 50, 50); }
 
   /* Every marker on screen — country pins and cluster badges alike — so hit
      areas are sized against what is really there, never against hidden pins. */
   function geometry() {
     var v = view();
-    var tight = crowded();
+    /* zoomed in on the world by hand, groups split as their countries spread */
+    var tight = state.selected || state.cluster ? crowded()
+      : crowdedAmong(Object.keys(COUNTRY_POINTS).filter(has), v.s);
     var w = state.mapW, h = w * MAP_RATIO;
     var at = function (x, y) { return [v.tx + v.s * x, v.ty + v.s * y]; };
     var onMap = function (xy) { return xy[0] > -3 && xy[0] < 103 && xy[1] > -3 && xy[1] < 103; };
@@ -367,6 +396,7 @@
     state.community = null;
     state.cluster = null;
     state.pan = { x: 0, y: 0 };
+    state.zoomBy = 1;
     render();
     revealMap();
   }
@@ -378,6 +408,7 @@
     state.community = null;
     state.cluster = null;
     state.pan = { x: 0, y: 0 };
+    state.zoomBy = 1;
     render();
   }
 
@@ -389,6 +420,7 @@
     state.hoverName = null;
     state.community = null;
     state.pan = { x: 0, y: 0 };
+    state.zoomBy = 1;
     render();
     revealMap();
   }
@@ -546,7 +578,34 @@
 
   /* ── panning ── */
 
+  var pointers = {};
+  var pinch = null;
+
+  function pinchSpan() {
+    var ids = Object.keys(pointers);
+    var a = pointers[ids[0]], b = pointers[ids[1]];
+    var r = el.frame.getBoundingClientRect();
+    return {
+      d: Math.hypot(a.x - b.x, a.y - b.y),
+      fx: ((a.x + b.x) / 2 - r.left) / r.width * 100,
+      fy: ((a.y + b.y) / 2 - r.top) / r.height * 100
+    };
+  }
+
   function onPointerDown(event) {
+    if (event.pointerType === 'touch') {
+      pointers[event.pointerId] = { x: event.clientX, y: event.clientY };
+      if (Object.keys(pointers).length === 2) {
+        /* a second finger turns the drag into a pinch */
+        drag = null;
+        dragged = true;
+        var sp = pinchSpan();
+        pinch = { d: sp.d, s: view().s };
+        state.dragging = true;
+        el.frame.classList.add('is-dragging');
+        return;
+      }
+    }
     if (!zoomed()) return;
     drag = {
       x: event.clientX, y: event.clientY, id: event.pointerId,
@@ -556,6 +615,12 @@
   }
 
   function onPointerMove(event) {
+    if (pointers[event.pointerId]) pointers[event.pointerId] = { x: event.clientX, y: event.clientY };
+    if (pinch && Object.keys(pointers).length === 2) {
+      var sp = pinchSpan();
+      if (pinch.d > 0) zoomTo(pinch.s * sp.d / pinch.d, sp.fx, sp.fy);
+      return;
+    }
     if (!drag) return;
     var w = state.mapW, h = w * MAP_RATIO;
     var dx = event.clientX - drag.x, dy = event.clientY - drag.y;
@@ -571,7 +636,17 @@
     render();
   }
 
-  function onPointerUp() {
+  function onPointerUp(event) {
+    if (event && pointers[event.pointerId]) delete pointers[event.pointerId];
+    if (pinch) {
+      if (Object.keys(pointers).length < 2) {
+        pinch = null;
+        state.dragging = false;
+        render();
+        setTimeout(function () { dragged = false; }, 0);
+      }
+      return;
+    }
     if (!drag) return;
     if (drag.el.releasePointerCapture && drag.el.hasPointerCapture && drag.el.hasPointerCapture(drag.id)) {
       drag.el.releasePointerCapture(drag.id);
@@ -605,6 +680,8 @@
     el.frame.classList.toggle('is-zoomed', zoomed());
     el.frame.classList.toggle('is-dragging', state.dragging);
     el.zoom.style.transform = 'translate(' + v.tx + '%, ' + v.ty + '%) scale(' + v.s + ')';
+    el.zoomIn.disabled = v.s >= MAX_ZOOM - 1e-6;
+    el.zoomOut.disabled = v.s <= 1 + 1e-6;
 
     g.list.forEach(function (m) {
       var node = m.kind === 'pin' ? pinEls[m.name] : badgeEls[m.cluster.key];
@@ -631,8 +708,10 @@
         var active = state.hoverName === m.name || state.selected === m.name;
         node.classList.toggle('is-active', active);
         var onScreen = SMALL_WIDTH[m.name] ? SMALL_WIDTH[m.name] * v.s * state.mapW / 1600 : Infinity;
-        node.classList.toggle('is-ring', state.selected === m.name && onScreen < RING_BELOW_PX);
-        node.classList.toggle('is-hollow', state.selected !== m.name && onScreen < DOT_PX);
+        /* zoomed right out by hand, a selected territory smaller than the dot is
+           drawn hollow like the rest, not as the large ring */
+        node.classList.toggle('is-ring', state.selected === m.name && onScreen < RING_BELOW_PX && onScreen >= DOT_PX);
+        node.classList.toggle('is-hollow', onScreen < DOT_PX);
       }
     });
 
@@ -991,6 +1070,7 @@
           state.cluster = null;
           state.hoverName = null;
           state.pan = { x: 0, y: 0 };
+          state.zoomBy = 1;
         }
       }
       render();
@@ -1030,6 +1110,8 @@
     el.searchInput = document.getElementById('mapSearchInput');
     el.searchClose = document.getElementById('mapSearchClose');
     el.searchList = document.getElementById('mapSearchList');
+    el.zoomIn = document.getElementById('mapZoomIn');
+    el.zoomOut = document.getElementById('mapZoomOut');
 
     buildMarkers();
     buildEarlier();
@@ -1042,6 +1124,22 @@
     el.frame.addEventListener('pointercancel', onPointerUp);
     el.frame.addEventListener('pointerleave', onPointerUp);
     el.frame.addEventListener('dblclick', function () { if (zoomed()) resetView(); });
+    el.zoomIn.addEventListener('click', function () { zoomStep(ZOOM_STEP); });
+    el.zoomOut.addEventListener('click', function () { zoomStep(1 / ZOOM_STEP); });
+    /* the zoom buttons are on the frame: keep their taps from starting a drag
+       or reaching the map behind them */
+    [el.zoomIn, el.zoomOut].forEach(function (b) {
+      b.addEventListener('pointerdown', function (event) { event.stopPropagation(); });
+      b.addEventListener('dblclick', function (event) { event.stopPropagation(); });
+    });
+    /* a trackpad pinch, or Ctrl + scroll; a plain scroll still scrolls the page */
+    el.frame.addEventListener('wheel', function (event) {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      var r = el.frame.getBoundingClientRect();
+      zoomTo(view().s * Math.exp(-event.deltaY * 0.01),
+        (event.clientX - r.left) / r.width * 100, (event.clientY - r.top) / r.height * 100);
+    }, { passive: false });
     /* a tap on the map away from an earlier foundation lets its label go */
     el.frame.addEventListener('click', function () { if (!dragged) hideEarlier(true); });
 

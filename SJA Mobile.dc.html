@@ -22,6 +22,8 @@
   .sja-pin:focus, .sja-badge:focus, .sja-search-open:focus { outline: none; }
   .sja-pin:focus-visible > span:first-child,
   .sja-badge:focus-visible > span { box-shadow: 0 0 0 3px rgba(255,255,255,.95), 0 0 0 5px #00305f !important; }
+  .sja-zoom:focus { outline: none; }
+  .sja-zoom:focus-visible { box-shadow: inset 0 0 0 2px #00305f; }
   .sja-search-open:focus-visible { box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px #00305f !important; }
   .sja-search-input::-webkit-search-cancel-button { display: none; }
 </style>
@@ -308,6 +310,10 @@
             <sc-if value="{{ hoverName }}" hint-placeholder-val="{{ false }}">
               <div style="position:absolute; left:{{ tipLeft }}; top:{{ tipTop }}; transform:{{ tipTransform }}; background:#004a9b; color:#ffffff; font-size:13px; font-weight:500; padding:6px 12px; border-radius:6px; white-space:nowrap; text-align:center; pointer-events:none; box-shadow:0 10px 20px -6px rgba(0,49,95,.6); z-index:5;">{{ hoverName }}<sc-if value="{{ tipSub }}" hint-placeholder-val="{{ false }}"><span style="display:block; font-size:11px; font-weight:400; opacity:.8;">{{ tipSub }}</span></sc-if></div>
             </sc-if>
+            <div role="group" aria-label="Zoom" onPointerDown="{{ stopEvent }}" onDoubleClick="{{ stopEvent }}" onClick="{{ stopEvent }}" style="position:absolute; left:8px; bottom:8px; z-index:7; display:flex; flex-direction:column; border-radius:20px; background:#ffffff; box-shadow:0 2px 10px rgba(0,49,95,.35);">
+              <button type="button" class="sja-zoom" onClick="{{ zoomIn }}" disabled="{{ zoomInOff }}" aria-label="Zoom in" style="width:40px; height:36px; padding:0; border:0; border-bottom:1px solid rgba(0,49,95,.15); border-radius:20px 20px 0 0; background:transparent; color:{{ zoomInColor }}; font:400 24px/1 system-ui, sans-serif; cursor:pointer;">+</button>
+              <button type="button" class="sja-zoom" onClick="{{ zoomOut }}" disabled="{{ zoomOutOff }}" aria-label="Zoom out" style="width:40px; height:36px; padding:0; border:0; border-radius:0 0 20px 20px; background:transparent; color:{{ zoomOutColor }}; font:400 24px/1 system-ui, sans-serif; cursor:pointer;">−</button>
+            </div>
           </div>
           <div ref="{{ searchRef }}" role="search" style="position:absolute; top:8px; left:8px; right:8px; z-index:8; pointer-events:none;">
             <sc-if value="{{ searchClosed }}" hint-placeholder-val="{{ true }}">
@@ -336,7 +342,13 @@
               </sc-if>
             </sc-if>
           </div>
-          <div style="padding:10px 14px 12px; font-size:12px; line-height:1.5; color:#475569; background:#f4f9fe; border-radius:0 0 10px 10px;">Deep blue: present today. Pale blue: countries of earlier foundations, with no community today; hover or tap one for its name and year. The year shown on selection is the first foundation in that country. Tap a marker to see the communities there today; when zoomed in, drag to move the map and double-tap to return to the world.</div>
+          <ul aria-label="Map key" style="display:flex; flex-wrap:wrap; gap:8px 16px; margin:0; padding:10px 14px 0; list-style:none; background:#f4f9fe; border-top:1px solid rgba(0,49,95,.1); font-size:12px; color:#00305f;">
+            <li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="width:16px; height:11px; border-radius:2px; background:#004a9b; box-shadow:inset 0 0 0 1px rgba(0,49,95,.2);"></span>Communities today</li>
+            <li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="width:16px; height:11px; border-radius:2px; background:#b0d6f7; box-shadow:inset 0 0 0 1px rgba(0,49,95,.2);"></span>Earlier foundations</li>
+            <li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="width:9px; height:9px; margin:0 2px; border-radius:50%; background:#004a9b; box-shadow:0 0 0 2px #ffffff, 0 1px 4px rgba(0,49,95,.45);"></span>Country</li>
+            <li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:#004a9b; color:#ffffff; font-size:10px; font-weight:600; box-shadow:0 0 0 2px #ffffff, 0 1px 4px rgba(0,49,95,.45);">3</span>Group of countries</li>
+          </ul>
+          <div style="padding:10px 14px 12px; font-size:12px; line-height:1.5; color:#475569; background:#f4f9fe; border-radius:0 0 10px 10px;">Hover or tap a pale-blue country for its name and year. The year shown on selection is the first foundation in that country. Tap a marker to see the communities there today; use + and − (or pinch) to zoom; when zoomed in, drag to move the map and double-tap to return to the world.</div>
         </div>
 
         <sc-if value="{{ clusterLabel }}" hint-placeholder-val="{{ false }}">
@@ -519,6 +531,8 @@ const UNGROUP_MIN_PX = 26;
 const SMALL_WIDTH = { "Malta": 1.8, "Palestinian Territories": 3.4 };
 const SMALL_TARGET_PX = 40;
 const MAX_ZOOM = 60;
+// the zoom buttons step by this much; pinch and Ctrl + scroll are free
+const ZOOM_STEP = 2;
 const RING_BELOW_PX = 32;
 // narrower on screen than a marker's dot, a territory would vanish under it
 // and the marker would seem to float in the sea: draw the marker hollow
@@ -611,7 +625,7 @@ function searchParts(label, terms) {
 }
 
 class Component extends DCLogic {
-  state = { menuOpen: false, open: null, openFull: "Who we are", slide: 0, mapLoading: true, hoverName: null, hoverX: 0, hoverY: 0, selected: null, community: null, cluster: null, mapW: 390, pan: { x: 0, y: 0 }, dragging: false, searchOpen: false, searchQuery: "", searchActive: -1, earlier: null, hoverBadge: null };
+  state = { menuOpen: false, open: null, openFull: "Who we are", slide: 0, mapLoading: true, hoverName: null, hoverX: 0, hoverY: 0, selected: null, community: null, cluster: null, mapW: 390, pan: { x: 0, y: 0 }, zoomBy: 1, dragging: false, searchOpen: false, searchQuery: "", searchActive: -1, earlier: null, hoverBadge: null };
   mapContainerRef = React.createRef();
   searchRef = React.createRef();
   searchInputRef = React.createRef();
@@ -624,6 +638,7 @@ class Component extends DCLogic {
       }, ms);
     }
     this.measure();
+    if (this.mapContainerRef.current) this.mapContainerRef.current.addEventListener("wheel", this.onMapWheel, { passive: false });
     window.addEventListener("resize", this.measure);
     document.addEventListener("pointerdown", this.onOutsidePointer);
     document.addEventListener("keydown", this.onEscape);
@@ -691,12 +706,12 @@ class Component extends DCLogic {
     if (entry.kind === "earlier") {
       // back to the world view, where every earlier foundation is in frame
       this.setState({ searchOpen: false, searchQuery: "", searchActive: -1, selected: null, hoverName: null,
-        cluster: null, community: null, pan: { x: 0, y: 0 }, earlier: { name: entry.name, pinned: true } });
+        cluster: null, community: null, pan: { x: 0, y: 0 }, zoomBy: 1, earlier: { name: entry.name, pinned: true } });
       return;
     }
     const country = entry.kind === "country" ? entry.name : entry.country;
     this.setState({ searchOpen: false, searchQuery: "", searchActive: -1,
-      selected: country, hoverName: country, cluster: null, pan: { x: 0, y: 0 }, earlier: null,
+      selected: country, hoverName: country, cluster: null, pan: { x: 0, y: 0 }, zoomBy: 1, earlier: null,
       community: entry.kind === "community" ? entry.name : null });
   };
 
@@ -754,12 +769,18 @@ class Component extends DCLogic {
     return Math.max(s, Math.min(MAX_ZOOM, SMALL_TARGET_PX / (SMALL_WIDTH[name] * this.state.mapW / 1600)));
   }
 
-  view() {
+  // the zoom of the view chosen (world, group or country) and its centre
+  baseView() {
     const sel = this.state.selected;
     const cl = !sel && this.state.cluster ? clusterByKey(this.state.cluster) : null;
     const p = sel ? COUNTRY_POINTS[sel] : (cl ? this.clusterView(cl) : null);
-    if (!p) return { s: 1, tx: 0, ty: 0 };
-    const s = sel ? this.countryScale(sel) : p[2];
+    if (!p) return [50, 50, 1];
+    return [p[0], p[1], sel ? this.countryScale(sel) : p[2]];
+  }
+
+  view() {
+    const p = this.baseView();
+    const s = Math.max(1, Math.min(MAX_ZOOM, p[2] * this.state.zoomBy));
     const clamp = (v) => Math.max(100 - 100 * s, Math.min(0, v));
     return {
       s: s,
@@ -768,7 +789,39 @@ class Component extends DCLogic {
     };
   }
 
-  zoomed() { return !!(this.state.selected || this.state.cluster); }
+  zoomed() { return !!(this.state.selected || this.state.cluster) || this.state.zoomBy > 1; }
+
+  // zoom to s, keeping the map point under frame point (fx, fy) — in % of the
+  // frame — where it is; the pan is restated from where the map really is
+  zoomTo = (s, fx, fy) => {
+    const p = this.baseView(), v = this.view();
+    s = Math.max(1, Math.min(MAX_ZOOM, s));
+    if (Math.abs(s - v.s) < 1e-6) return;
+    const cx = (fx - v.tx) / v.s, cy = (fy - v.ty) / v.s;
+    this.setState({ zoomBy: s / p[2], earlier: null,
+      pan: { x: fx - s * cx - 50 + s * p[0], y: fy - s * cy - 50 + s * p[1] } });
+  };
+
+  zoomIn = (event) => { event.stopPropagation(); this.zoomTo(this.view().s * ZOOM_STEP, 50, 50); };
+  zoomOut = (event) => { event.stopPropagation(); this.zoomTo(this.view().s / ZOOM_STEP, 50, 50); };
+  stopEvent = (event) => { event.stopPropagation(); };
+
+  // a trackpad pinch, or Ctrl + scroll; a plain scroll still scrolls the page
+  onMapWheel = (event) => {
+    if (!event.ctrlKey && !event.metaKey) return;
+    event.preventDefault();
+    const r = this.mapContainerRef.current.getBoundingClientRect();
+    this.zoomTo(this.view().s * Math.exp(-event.deltaY * 0.01),
+      (event.clientX - r.left) / r.width * 100, (event.clientY - r.top) / r.height * 100);
+  };
+
+  pinchSpan() {
+    const ids = Object.keys(this.pointers);
+    const a = this.pointers[ids[0]], b = this.pointers[ids[1]];
+    const r = this.mapContainerRef.current.getBoundingClientRect();
+    return { d: Math.hypot(a.x - b.x, a.y - b.y),
+      fx: ((a.x + b.x) / 2 - r.left) / r.width * 100, fy: ((a.y + b.y) / 2 - r.top) / r.height * 100 };
+  }
 
   // every marker on screen — country pins and cluster badges alike — so hit
   // areas are sized against what is really there, never against hidden pins
@@ -789,18 +842,21 @@ class Component extends DCLogic {
     // members are always shown, so they win any tie
     const live = Object.keys(COUNTRY_POINTS).filter(HAS_COMMUNITIES);
     const tightHere = open && open.parent ? this.crowdedAmong(live, pt.s) : null;
+    // zoomed in on the world by hand, groups split as their countries spread
+    const free = !this.state.selected && !this.state.cluster && this.state.zoomBy > 1;
+    const tightFree = free ? this.crowdedAmong(live, pt.s) : null;
     live.forEach(name => {
       const xy = pt(name);
       const visible = onMap(xy) && (this.state.selected === name || inOpen(name) ||
-        (tightHere ? !tightHere[name] : !CLUSTER_OF[name]));
+        (tightHere ? !tightHere[name] : (!CLUSTER_OF[name] || (free && !tightFree[name]))));
       list.push({ kind: "pin", name: name, xy: xy, visible: visible });
     });
     CLUSTERS.forEach(c => {
       const cv = this.clusterView(c);
       const xy = pt.at(cv[0], cv[1]);
-      const count = c.parent ? Object.keys(inner).filter(m => inner[m] === c.key).length : c.members.filter(HAS_COMMUNITIES).length;
+      const count = c.parent ? Object.keys(inner).filter(m => inner[m] === c.key).length : c.members.filter(m => HAS_COMMUNITIES(m) && (!free || tightFree[m])).length;
       const visible = c.parent ? count > 1 && !!open && open.key === c.parent
-        : count > 0 && !this.state.selected && this.state.cluster !== c.key && !(open && open.parent);
+        : count > (free ? 1 : 0) && !this.state.selected && this.state.cluster !== c.key && !(open && open.parent);
       list.push({ kind: "cluster", cluster: c, xy: xy, count: count, visible: visible && onMap(xy) });
     });
     const shown = list.filter(m => m.visible);
@@ -817,8 +873,10 @@ class Component extends DCLogic {
     const pins = list.filter(m => m.kind === "pin").map(m => {
       const active = this.state.hoverName === m.name || this.state.selected === m.name;
       const onScreen = SMALL_WIDTH[m.name] ? SMALL_WIDTH[m.name] * pt.s * this.state.mapW / 1600 : Infinity;
-      const ring = this.state.selected === m.name && onScreen < RING_BELOW_PX;
-      const hollow = !ring && this.state.selected !== m.name && onScreen < DOT_PX;
+      // zoomed right out by hand, a selected territory smaller than the dot is
+      // drawn hollow like the rest, not as the large ring
+      const ring = this.state.selected === m.name && onScreen < RING_BELOW_PX && onScreen >= DOT_PX;
+      const hollow = onScreen < DOT_PX;
       const hit = m.hit || 18;
       return {
         name: m.name,
@@ -862,7 +920,21 @@ class Component extends DCLogic {
     return { pins: pins, clusters: clusters };
   }
 
-    onMapPointerDown = (event) => {
+  pointers = {};
+  pinch = null;
+
+  onMapPointerDown = (event) => {
+    if (event.pointerType === "touch") {
+      this.pointers[event.pointerId] = { x: event.clientX, y: event.clientY };
+      if (Object.keys(this.pointers).length === 2) {
+        // a second finger turns the drag into a pinch
+        this.drag = null;
+        this.dragged = true;
+        this.pinch = { d: this.pinchSpan().d, s: this.view().s };
+        this.setState({ dragging: true });
+        return;
+      }
+    }
     if (!this.zoomed()) return;
     this.drag = { x: event.clientX, y: event.clientY, id: event.pointerId, el: event.currentTarget,
       pan: { x: this.state.pan.x, y: this.state.pan.y } };
@@ -870,6 +942,12 @@ class Component extends DCLogic {
   };
 
   onMapPointerMove = (event) => {
+    if (this.pointers[event.pointerId]) this.pointers[event.pointerId] = { x: event.clientX, y: event.clientY };
+    if (this.pinch && Object.keys(this.pointers).length === 2) {
+      const sp = this.pinchSpan();
+      if (this.pinch.d > 0) this.zoomTo(this.pinch.s * sp.d / this.pinch.d, sp.fx, sp.fy);
+      return;
+    }
     if (!this.drag) return;
     const w = this.state.mapW, h = w * MAP_RATIO;
     const dxPx = event.clientX - this.drag.x, dyPx = event.clientY - this.drag.y;
@@ -886,7 +964,16 @@ class Component extends DCLogic {
     });
   };
 
-  onMapPointerUp = () => {
+  onMapPointerUp = (event) => {
+    if (event && this.pointers[event.pointerId]) delete this.pointers[event.pointerId];
+    if (this.pinch) {
+      if (Object.keys(this.pointers).length < 2) {
+        this.pinch = null;
+        this.setState({ dragging: false });
+        setTimeout(() => { this.dragged = false; }, 0);
+      }
+      return;
+    }
     if (!this.drag) return;
     if (this.drag.el.releasePointerCapture && this.drag.el.hasPointerCapture && this.drag.el.hasPointerCapture(this.drag.id)) {
       this.drag.el.releasePointerCapture(this.drag.id);
@@ -900,12 +987,12 @@ class Component extends DCLogic {
 
   selectCountry = (name) => {
     if (!COUNTRY_POINTS[name]) return;
-    this.setState({ selected: name, hoverName: name, community: null, cluster: null, pan: { x: 0, y: 0 }, earlier: null });
+    this.setState({ selected: name, hoverName: name, community: null, cluster: null, pan: { x: 0, y: 0 }, zoomBy: 1, earlier: null });
   };
 
-  resetView = () => { this.setState({ selected: null, hoverName: null, community: null, cluster: null, pan: { x: 0, y: 0 }, earlier: null }); };
+  resetView = () => { this.setState({ selected: null, hoverName: null, community: null, cluster: null, pan: { x: 0, y: 0 }, zoomBy: 1, earlier: null }); };
 
-  openCluster = (key) => { this.setState({ cluster: key, selected: null, hoverName: null, community: null, pan: { x: 0, y: 0 }, earlier: null, hoverBadge: null }); };
+  openCluster = (key) => { this.setState({ cluster: key, selected: null, hoverName: null, community: null, pan: { x: 0, y: 0 }, zoomBy: 1, earlier: null, hoverBadge: null }); };
 
   focusCountry = (name) => { if (!this.state.selected) this.setState({ hoverName: name }); };
 
@@ -990,7 +1077,14 @@ class Component extends DCLogic {
       ],
       footerLinks: ["Who we are", "Where we are", "What we do", "Formation", "News", "Contact", "Members"],
       mapContainerRef: this.mapContainerRef,
-      mapTouch: this.zoomed() ? "none" : "auto",
+      mapTouch: this.zoomed() ? "none" : "pan-x pan-y",
+      zoomIn: this.zoomIn,
+      zoomOut: this.zoomOut,
+      stopEvent: this.stopEvent,
+      zoomInColor: v.s >= MAX_ZOOM - 1e-6 ? "rgba(0,49,95,.3)" : "#004a9b",
+      zoomOutColor: v.s <= 1 + 1e-6 ? "rgba(0,49,95,.3)" : "#004a9b",
+      zoomInOff: v.s >= MAX_ZOOM - 1e-6,
+      zoomOutOff: v.s <= 1 + 1e-6,
       mapCursor: this.zoomed() ? (this.state.dragging ? "grabbing" : "grab") : "default",
       mapTransition: this.state.dragging ? "none" : "transform .55s cubic-bezier(.4,0,.2,1)",
       onMapPointerDown: this.onMapPointerDown,

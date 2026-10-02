@@ -116,6 +116,16 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   territory narrower than its own dot (Malta in the Mediterranean view) is
   drawn hollow, so the island shows inside it instead of vanishing under it.
 
+  **Zoom and key.** + and − buttons at the map's bottom-left (over the
+  Pacific, clear of every marker) zoom by 2x around the centre of the frame,
+  from the world up to 60x; a pinch, a trackpad pinch or Ctrl + scroll zooms
+  freely around the fingers or pointer (a plain scroll still scrolls the page).
+  The zoom works on top of any view, and choosing a country, group or World map
+  starts afresh. Zoomed in on the world by hand, groups split as their
+  countries spread: crowding is measured at the zoom shown. A key under the map
+  explains deep blue (communities today), pale blue (earlier foundations), a
+  country marker and a group badge.
+
   **Search on the map.** A round button at the map's top-right opens a field
   that finds a country or a community by name as you type: accent-blind
   ("peten" finds Petén), every word must match, and common names work too

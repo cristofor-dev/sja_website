@@ -123,8 +123,8 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   The zoom works on top of any view, and choosing a country, group or World map
   starts afresh. Zoomed in on the world by hand, groups split as their
   countries spread, and regroup as you zoom out: crowding is measured at the
-  zoom shown. Zooming out past an open group's zoom leaves the group; zooming
-  out past a selected country's zoom regroups the others around it. A key under the map
+  zoom shown. Zooming out past an open group's or a selected country's own zoom
+  leaves it: the panel closes and the country regroups with its neighbours. A key under the map
   explains deep blue (communities today), pale blue (earlier foundations), a
   country marker and a group badge; the key's badge carries the count of the
   largest group on the map at that moment and leaves the key while none shows.

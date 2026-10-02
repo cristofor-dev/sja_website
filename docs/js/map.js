@@ -285,10 +285,12 @@
     s = Math.max(1, Math.min(MAX_ZOOM, s));
     if (Math.abs(s - v.s) < 1e-6) return;
     var cx = (fx - v.tx) / v.s, cy = (fy - v.ty) / v.s;
-    /* zooming out past an open group's own zoom leaves the group, so its
-       countries can regroup under their badge */
-    if (state.cluster && s < p[2] - 1e-6) {
+    /* zooming out past an open group's or a selected country's own zoom
+       leaves it, so the countries can regroup under their badges */
+    if ((state.cluster || state.selected) && s < p[2] - 1e-6) {
       state.cluster = null;
+      state.selected = null;
+      state.community = null;
       state.hoverName = null;
       state.hoverBadge = null;
       p = baseView();

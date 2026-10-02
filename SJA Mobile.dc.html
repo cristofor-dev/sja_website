@@ -798,11 +798,11 @@ class Component extends DCLogic {
     s = Math.max(1, Math.min(MAX_ZOOM, s));
     if (Math.abs(s - v.s) < 1e-6) return;
     const cx = (fx - v.tx) / v.s, cy = (fy - v.ty) / v.s;
-    // zooming out past an open group's own zoom leaves the group, so its
-    // countries can regroup under their badge
+    // zooming out past an open group's or a selected country's own zoom
+    // leaves it, so the countries can regroup under their badges
     let leave = {};
-    if (this.state.cluster && s < p[2] - 1e-6) {
-      leave = { cluster: null, hoverName: null, hoverBadge: null };
+    if ((this.state.cluster || this.state.selected) && s < p[2] - 1e-6) {
+      leave = { cluster: null, selected: null, community: null, hoverName: null, hoverBadge: null };
       p = [50, 50, 1];
     }
     this.setState({ ...leave, zoomBy: s / p[2], earlier: null,

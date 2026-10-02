@@ -715,6 +715,17 @@
       }
     });
 
+    /* the key's group badge carries the count of the largest group on the map
+       now, and leaves the key when no group is shown */
+    var most = 0;
+    g.list.forEach(function (m) {
+      if (m.kind === 'cluster' && m.visible) most = Math.max(most, m.count);
+    });
+    if (el.legendGroup) {
+      el.legendGroup.hidden = !most;
+      if (most) el.legendBadge.textContent = most;
+    }
+
     /* tooltip */
     var name = state.hoverName;
     var badge = null;
@@ -1112,6 +1123,8 @@
     el.searchList = document.getElementById('mapSearchList');
     el.zoomIn = document.getElementById('mapZoomIn');
     el.zoomOut = document.getElementById('mapZoomOut');
+    el.legendGroup = document.getElementById('mapLegendGroup');
+    el.legendBadge = document.getElementById('mapLegendBadge');
 
     buildMarkers();
     buildEarlier();

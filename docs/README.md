@@ -124,7 +124,8 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   starts afresh. Zoomed in on the world by hand, groups split as their
   countries spread: crowding is measured at the zoom shown. A key under the map
   explains deep blue (communities today), pale blue (earlier foundations), a
-  country marker and a group badge.
+  country marker and a group badge; the key's badge carries the count of the
+  largest group on the map at that moment and leaves the key while none shows.
 
   **Search on the map.** A round button at the map's top-right opens a field
   that finds a country or a community by name as you type: accent-blind

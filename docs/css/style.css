@@ -821,6 +821,7 @@ blockquote.quote cite {
 }
 
 .map-legend li { display: flex; align-items: center; gap: 6px; }
+.map-legend li[hidden] { display: none; }
 
 .map-legend__swatch {
   width: 16px;

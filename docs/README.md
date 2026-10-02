@@ -112,7 +112,9 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   the Palestinian Territories zooms in until the territory is about 40px wide
   (up to 60x), so the marker is seen on it; where even that leaves the
   territory smaller than the marker (Malta on a phone), the selected marker is
-  a ring round the island instead of a dot over it.
+  a ring round the island instead of a dot over it. Unselected, a marker over a
+  territory narrower than its own dot (Malta in the Mediterranean view) is
+  drawn hollow, so the island shows inside it instead of vanishing under it.
 
   **Search on the map.** A round button at the map's top-right opens a field
   that finds a country or a community by name as you type: accent-blind

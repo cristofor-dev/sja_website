@@ -99,3 +99,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 57. **No "Malta" tag either (design + site build)**: Malta's permanent name tag is gone too, so no marker carries one; the tag code (`UNLABELLED`, `.pin__label`) was removed from the site and the design file. Hover and selection still name every country.
 
 58. **Every marker in the Holy Land view (design + site build)**: zoomed into the Holy Land group, only its own countries had markers, so Cyprus, Syria, Lebanon, Jordan, Greece, Malta, Italy and Tunisia sat bare in frame. Every country in frame now keeps its marker, unless it is still crowded at that zoom; the group's own members always show, so they win any tie.
+
+59. **Malta's marker reads as on Malta (design + site build)**: in the Mediterranean view Malta is about 6px across, so the marker's 11px dot hid it completely and the marker seemed to float in the sea south of Sicily (it was placed exactly on the island). A marker over a territory narrower than its dot is now drawn hollow — a white ring with a clear centre — so the island shows inside it, matching how the other markers read over their deep-blue countries.

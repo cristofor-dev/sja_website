@@ -520,6 +520,9 @@ const SMALL_WIDTH = { "Malta": 1.8, "Palestinian Territories": 3.4 };
 const SMALL_TARGET_PX = 40;
 const MAX_ZOOM = 60;
 const RING_BELOW_PX = 32;
+// narrower on screen than a marker's dot, a territory would vanish under it
+// and the marker would seem to float in the sea: draw the marker hollow
+const DOT_PX = 11;
 
 const HAS_COMMUNITIES = (name) => ((LOCATIONS[name] || []).length > 0);
 
@@ -813,8 +816,9 @@ class Component extends DCLogic {
 
     const pins = list.filter(m => m.kind === "pin").map(m => {
       const active = this.state.hoverName === m.name || this.state.selected === m.name;
-      const ring = this.state.selected === m.name && !!SMALL_WIDTH[m.name] &&
-        SMALL_WIDTH[m.name] * pt.s * this.state.mapW / 1600 < RING_BELOW_PX;
+      const onScreen = SMALL_WIDTH[m.name] ? SMALL_WIDTH[m.name] * pt.s * this.state.mapW / 1600 : Infinity;
+      const ring = this.state.selected === m.name && onScreen < RING_BELOW_PX;
+      const hollow = !ring && this.state.selected !== m.name && onScreen < DOT_PX;
       const hit = m.hit || 18;
       return {
         name: m.name,
@@ -824,9 +828,10 @@ class Component extends DCLogic {
         offset: (-hit / 2) + "px 0 0 " + (-hit / 2) + "px",
         display: m.visible ? "flex" : "none",
         dot: ring ? "36px" : (active ? "17px" : "11px"),
-        bg: ring ? "transparent" : (active ? "#00305f" : "#004a9b"),
+        bg: ring || hollow ? "transparent" : (active ? "#00305f" : "#004a9b"),
         shadow: ring ? "inset 0 0 0 3px #00305f, 0 0 0 2px rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.35)"
-          : "0 0 0 " + (active ? "5px" : "3px") + " rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45)",
+          : (hollow ? "inset 0 0 0 2px #004a9b, 0 0 0 3px rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45)"
+          : "0 0 0 " + (active ? "5px" : "3px") + " rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45)"),
         select: () => { if (this.dragged) return; if (this.state.selected === m.name) this.resetView(); else this.selectCountry(m.name); },
         focus: () => this.focusCountry(m.name),
         blur: () => this.clearFocus()

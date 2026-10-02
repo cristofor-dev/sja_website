@@ -108,6 +108,10 @@
   /* still narrower than this on screen at MAX_ZOOM (Malta on a phone), the
      selected marker becomes a ring round the territory instead of a dot on it */
   var RING_BELOW_PX = 32;
+  /* narrower on screen than a marker's dot, a territory would vanish under it
+     and the marker would seem to float in the sea: draw the marker hollow,
+     so the territory shows inside it */
+  var DOT_PX = 11;
 
   var MAP_RATIO = 820.43 / 1600;
 
@@ -626,8 +630,9 @@
       if (m.kind === 'pin') {
         var active = state.hoverName === m.name || state.selected === m.name;
         node.classList.toggle('is-active', active);
-        node.classList.toggle('is-ring', state.selected === m.name && !!SMALL_WIDTH[m.name] &&
-          SMALL_WIDTH[m.name] * v.s * state.mapW / 1600 < RING_BELOW_PX);
+        var onScreen = SMALL_WIDTH[m.name] ? SMALL_WIDTH[m.name] * v.s * state.mapW / 1600 : Infinity;
+        node.classList.toggle('is-ring', state.selected === m.name && onScreen < RING_BELOW_PX);
+        node.classList.toggle('is-hollow', state.selected !== m.name && onScreen < DOT_PX);
       }
     });
 

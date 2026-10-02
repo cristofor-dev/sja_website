@@ -8,7 +8,7 @@ No build step, no dependencies: open `index.html` or drop the folder on any host
 docs/
   index.html          Home
   congregation.html   Who we are » Congregation
-  where-we-are.html   Where we are — interactive foundations map
+  where-we-are.html   Where we are — interactive world map
   *.html              every other page of the site (see "The other pages")
   css/style.css       all styling (palette and metrics taken from the design)
   js/site.js          navigation drawer, footer links, contact form,
@@ -18,7 +18,7 @@ docs/
   js/map.js           the interactive map layer
   parts/              the later parts of long pages, fetched on scroll
   search-index.json   what the search box suggests from
-  assets/             logo, photographs, foundations map artwork
+  assets/             logo, photographs, world map artwork
   assets/media/       photographs of the ported pages (WebP)
   assets/docs/        PDFs (bulletins, chapter updates, safeguarding policy)
 ```
@@ -91,12 +91,12 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   of 1px borders, 44px minimum tap targets.
 - **Navigation** — the full eight-section tree from the design, as an accordion
   drawer behind the header's menu button, on every page.
-- **Where we are** — the Congregation's own foundations map with the interactive
-  layer rebuilt in vanilla JS: 24 country markers at the coordinates measured
-  against the artwork, hover/tap highlight with a tooltip carrying the
-  foundation year, per-country zoom, drag-to-pan and double-tap-to-reset while
-  zoomed, the communities panel, the community sheet, and the region chips. Hit
-  areas are sized from the nearest visible marker (12–44px) so no marker can
+- **Where we are** — a blue world map drawn from real country borders, with the
+  interactive layer rebuilt in vanilla JS: 24 country markers placed by
+  projecting each country's longitude/latitude onto the artwork, hover/tap
+  highlight with a tooltip carrying the foundation year, per-country zoom,
+  drag-to-pan and double-tap-to-reset while zoomed, the communities panel, the
+  community sheet, and the region chips. Hit areas are sized from the nearest visible marker (12–44px) so no marker can
   swallow a neighbour's tap; Palestine keeps its offset marker and leader line.
 
   **Grouping adapts to the map's width.** A country carries its own marker as
@@ -104,19 +104,20 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   worth calling individually clickable. Below that, a numbered badge stands in
   for the countries still crowded, and its count and chooser list exactly those.
   So a phone shows 9 markers and all four badges, as designed; a 1044px desktop
-  map shows 19 individual markers and keeps a single badge for the five that are
-  genuinely inseparable (Cyprus, Syria, Lebanon, Israel, Jordan — Lebanon and
-  Israel are 15px apart even there). Crowding is measured at world zoom, so the
-  set depends only on width, not on what is open; a resize that spreads an open
-  group apart returns to the world view rather than stranding its chooser. The
-  region chips stay the 44px path to every country at every width.
+  map shows 16 individual markers and keeps two badges: Britain & Ireland, and
+  six of the Mediterranean & Holy Land (Malta, Cyprus, Syria, Lebanon, Israel,
+  Jordan — the Levant coast is only a few pixels deep even there). Crowding is
+  measured at world zoom, so the set depends only on width, not on what is
+  open; a resize that spreads an open group apart returns to the world view
+  rather than stranding its chooser. The region chips stay the 44px path to
+  every country at every width.
 
   | map width | individual markers | group badges |
   | --- | --- | --- |
   | 390px (phone) | 9 | 4 |
   | 684px | 13 | 3 |
-  | 968px | 17 | 2 |
-  | 1044px (desktop) | 19 | 1 |
+  | 968px | 14 | 3 |
+  | 1044px (desktop) | 16 | 2 |
 
   **Selecting a country brings the map to the top of the viewport**, since the
   communities panel opens below the map and would otherwise start off the
@@ -221,21 +222,16 @@ and the CDN on the next deploy without a hard refresh.
   so 1280px still covers 2x displays. Re-encode with:
   `cwebp -q 85 -resize 1280 0 -m 6 -sharp_yuv <source>.png -o hero-generalate-garden.webp`
   (`brew install webp`). The original PNG remains in `../assets/`.
-- `assets/world-map-foundations.png` — 1625x968, quantized to a 256-colour
-  palette with `pngquant`, 414KB (was 1013KB). It stays a PNG rather than WebP
-  because the artwork carries fine text (country names and foundation years)
-  that must survive the map's 6x zoom, and because its colour coding is the
-  content. Re-encode with:
-  `pngquant --nofs --quality=70-98 --speed 1 --strip 256 -- <source>.png`
-  (`brew install pngquant`). Dithering is off deliberately: the fills are flat,
-  so Floyd-Steinberg only adds speckle and costs bytes.
-
-  Palette size was chosen by checking whether quantization merges the fills of
-  the 24 presence countries. At 256 and 128 colours, only Italy/India and
-  Cyprus/Myanmar collapse to the same colour — pairs on different continents,
-  so nothing reads wrong. At 64 colours, Cyprus and the Palestinian Territories
-  merge, and they sit in the same neighbourhood on the map, so 64 and below were
-  rejected. SSIM against the original is 0.9983.
+- `assets/world-map-blue.svg` — 1600x820, 451KB, self-contained (no network
+  requests). Drawn from Natural Earth 1:50m country boundaries (world-atlas@2
+  `countries-50m.json`, public domain) in Mercator, cropped to lon −130…180
+  and lat −47…72, Antarctica omitted. Sea `#e4effa`, borders `#9fc2e4`; the 24
+  countries of presence are filled in their region's blue, countries of earlier
+  foundations in `#b0d6f7`, every other country white. It stays vector because
+  the map zooms to 6x. A marker's position in `js/map.js` is
+  `x% = (lon + 130) / 310 * 100` and
+  `y% = (m(72) − m(lat)) / (m(72) − m(−47)) * 100`, with
+  `m(φ) = ln(tan(π/4 + φ/2))`.
 
 - `assets/emilie-portrait-oval.webp` — 804x1207, WebP q85, 93KB (was a 1.2MB
   PNG). Native resolution was kept rather than downscaled: the portrait displays

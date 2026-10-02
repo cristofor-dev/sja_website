@@ -1,4 +1,4 @@
-/* "Where we are" — interactive layer over the Congregation's own foundations map.
+/* "Where we are" — interactive layer over the blue world map (assets/world-map-blue.svg).
    Ported from the design source (SJA Mobile.dc.html): the same coordinates,
    zoom scales, clustering, hit-size rules, nudges and panels. */
 (function () {
@@ -43,18 +43,19 @@
     'Panama': ['Chepo 17']
   };
 
-  /* [x%, y%, zoomScale] measured against assets/world-map-foundations.png (1625x968) */
+  /* [x%, y%, zoomScale] — lon/lat projected onto assets/world-map-blue.svg
+     (Mercator, lon -130..180, lat -47..72, 1600x820.4), so every marker sits on its own country */
   var COUNTRY_POINTS = {
-    'France': [39.0, 34.1, 4], 'United Kingdom': [38.6, 28.4, 4.4], 'Ireland': [36.3, 26.5, 5],
-    'Italy': [44.0, 39.6, 4], 'Malta': [45.2, 44.2, 3.6], 'Greece': [47.5, 41.3, 4.5],
-    'Cyprus': [52.1, 44.3, 6], 'Romania': [49.2, 26.9, 4.2],
-    'Tunisia': [42.7, 50.7, 4.5], 'Ethiopia': [53.4, 69.5, 3.6],
-    'Israel': [53.2, 49.6, 6], 'Palestinian Territories': [53.5, 49.2, 5],
-    'Syria': [55.1, 45.6, 5], 'Lebanon': [53.1, 47.2, 6], 'Jordan': [54.6, 50.3, 6],
-    'India': [64.7, 57.0, 2.8], 'Myanmar': [71.4, 56.3, 3.4], 'Thailand': [73.0, 62.0, 3.6],
-    'Singapore': [72.7, 69.6, 6], 'Philippines': [80.0, 62.0, 4],
-    'Australia': [84.0, 85.8, 2.4],
-    'Guatemala': [11.7, 52.3, 5], 'Panama': [14.5, 58.3, 5.5], 'Peru': [15.5, 69.2, 3.6]
+    'France': [42.74, 33.21, 4], 'United Kingdom': [41.42, 27.37, 4.4], 'Ireland': [39.35, 26.75, 5],
+    'Italy': [46.0, 36.49, 4], 'Malta': [46.59, 42.19, 4], 'Greece': [49.03, 39.41, 4.5],
+    'Cyprus': [52.61, 42.93, 6], 'Romania': [49.97, 33.84, 4.2],
+    'Tunisia': [44.97, 43.42, 4.5], 'Ethiopia': [54.68, 60.93, 3.6],
+    'Israel': [53.18, 45.67, 6], 'Palestinian Territories': [53.31, 45.19, 6],
+    'Syria': [54.39, 42.81, 5], 'Lebanon': [53.5, 43.69, 6], 'Jordan': [53.74, 45.96, 6],
+    'India': [67.35, 51.89, 2.8], 'Myanmar': [72.9, 52.57, 3.4], 'Thailand': [74.52, 56.48, 3.6],
+    'Singapore': [75.43, 65.57, 6], 'Philippines': [81.35, 58.62, 4],
+    'Australia': [85.16, 83.02, 2.4],
+    'Guatemala': [12.81, 56.48, 5], 'Panama': [16.06, 60.99, 5.5], 'Peru': [17.74, 72.49, 3.6]
   };
 
   /* year of the Congregation's first foundation, as printed on the map */
@@ -70,13 +71,13 @@
   /* countries too close together to tap apart at world zoom: one marker stands
      for the group and opens a chooser */
   var CLUSTERS = [
-    { key: 'med', label: 'Mediterranean & Holy Land', x: 51.7, y: 45.9, scale: 4.6,
+    { key: 'med', label: 'Mediterranean & Holy Land', x: 50.65, y: 43.27, scale: 4.6,
       members: ['Greece', 'Malta', 'Cyprus', 'Syria', 'Lebanon', 'Israel', 'Palestinian Territories', 'Jordan'] },
-    { key: 'brit', label: 'Britain & Ireland', x: 34.4, y: 24.2, scale: 4.4,
+    { key: 'brit', label: 'Britain & Ireland', x: 37.42, y: 22.57, scale: 4.4,
       members: ['United Kingdom', 'Ireland'] },
-    { key: 'sea', label: 'South-East Asia', x: 72.4, y: 62.6, scale: 3.4,
+    { key: 'sea', label: 'South-East Asia', x: 72.26, y: 59.46, scale: 3.4,
       members: ['Myanmar', 'Thailand', 'Singapore'] },
-    { key: 'camerica', label: 'Central America', x: 8.6, y: 55.2, scale: 5,
+    { key: 'camerica', label: 'Central America', x: 11.94, y: 60.73, scale: 5,
       members: ['Guatemala', 'Panama'] }
   ];
 
@@ -85,13 +86,13 @@
     c.members.forEach(function (m) { CLUSTER_OF[m] = c.key; });
   });
 
-  /* Malta and the Palestinian Territories are not drawn or named on the artwork */
+  /* the smallest territories get a name label beside their marker */
   var UNLABELLED = { 'Malta': 'Malta', 'Palestinian Territories': 'Palestine' };
 
   /* marker offset in screen px, drawn with a leader line back to the true point */
   var NUDGE = { 'Palestinian Territories': [34, 20] };
 
-  var MAP_RATIO = 968 / 1625;
+  var MAP_RATIO = 820.43 / 1600;
 
   /* A country carries its own marker once its nearest neighbour is at least
      this far away in screen pixels. 26px is the smallest hit box worth calling

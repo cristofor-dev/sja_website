@@ -579,7 +579,7 @@ def asset_version():
     """Short hash of the shared CSS/JS, appended as ?v= so browsers and the
     CDN drop stale copies after a change."""
     h = hashlib.md5()
-    for name in ('css/style.css', 'js/site.js', 'js/reader.js', 'js/lightbox.js'):
+    for name in ('css/style.css', 'js/site.js', 'js/reader.js', 'js/lightbox.js', 'js/map.js'):
         with open(os.path.join(DOCS, name), 'rb') as f:
             h.update(f.read())
     return h.hexdigest()[:8]

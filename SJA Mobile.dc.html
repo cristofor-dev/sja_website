@@ -295,12 +295,9 @@
                 <svg viewBox="0 0 1600 820.4" preserveAspectRatio="none" aria-hidden="true" style="position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none;"><path d="{{ e.d }}" fill="{{ e.fill }}" fill-rule="evenodd" onMouseEnter="{{ e.enter }}" onMouseLeave="{{ e.leave }}" onClick="{{ e.tap }}" style="pointer-events:visiblePainted; transition:fill .15s ease;"></path></svg>
               </sc-for>
             </div>
-            <sc-for list="{{ leaders }}" as="l" hint-placeholder-count="1">
-              <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; overflow:visible;"><line x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}" stroke="#004a9b" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity="0.75"></line></svg>
-            </sc-for>
             <sc-for list="{{ pins }}" as="p" hint-placeholder-count="24">
               <button type="button" class="sja-pin" onClick="{{ p.select }}" onMouseEnter="{{ p.focus }}" onMouseLeave="{{ p.blur }}" aria-label="{{ p.name }}" style="position:absolute; left:{{ p.left }}; top:{{ p.top }}; width:{{ p.size }}; height:{{ p.size }}; margin:{{ p.offset }}; padding:0; border:0; background:transparent; cursor:pointer; display:{{ p.display }}; align-items:center; justify-content:center; z-index:4;">
-                <span style="display:block; width:{{ p.dot }}; height:{{ p.dot }}; border-radius:50%; background:{{ p.bg }}; box-shadow:0 0 0 {{ p.halo }} rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45); transition:all .18s ease;"></span>
+                <span style="display:block; width:{{ p.dot }}; height:{{ p.dot }}; border-radius:50%; background:{{ p.bg }}; box-shadow:{{ p.shadow }}; transition:all .18s ease;"></span>
                 <span style="display:{{ p.labelShow }}; position:absolute; left:50%; top:50%; transform:translate(-50%,calc(-100% - 11px)); padding:1px 5px; background:rgba(255,255,255,.9); border-radius:3px; font-size:11px; font-weight:600; line-height:1.4; color:#00305f; white-space:nowrap; pointer-events:none;">{{ p.label }}</span>
               </button>
             </sc-for>
@@ -468,12 +465,14 @@ const LOCATIONS = {
 // (Mercator, lon -130..180, lat -47..72, 1600x820.4), so every marker sits on its own country.
 // The UK (Grantham, 0.6°W 52.9°N) and Ireland (Tuam, 9.0°W 53.5°N) sit towards
 // their far sides so that a full-width map can show them apart (26px+).
+// Israel's marker sits in the Negev (34.8°E 30.6°N), clear of the West Bank
+// marker (35.3°E 31.9°N), so the Holy Land group can open them apart.
 const COUNTRY_POINTS = {
   "France": [42.74, 33.21, 4], "United Kingdom": [41.74, 27.06, 4.4], "Ireland": [39.03, 26.43, 5],
   "Italy": [46.0, 36.49, 4], "Malta": [46.59, 42.19, 4], "Greece": [49.03, 39.41, 4.5],
   "Cyprus": [52.61, 42.93, 6], "Romania": [49.97, 33.84, 4.2],
   "Tunisia": [44.97, 43.42, 4.5], "Ethiopia": [54.68, 60.93, 3.6],
-  "Israel": [53.18, 45.67, 6], "Palestinian Territories": [53.31, 45.19, 6],
+  "Israel": [53.16, 46.18, 6], "Palestinian Territories": [53.31, 45.19, 6],
   "Syria": [54.39, 42.81, 5], "Lebanon": [53.5, 43.69, 6], "Jordan": [53.74, 45.96, 6],
   "India": [67.35, 51.89, 2.8], "Myanmar": [72.9, 52.57, 3.4], "Thailand": [74.52, 56.48, 3.6],
   "Singapore": [75.43, 65.57, 6], "Philippines": [81.35, 58.62, 4],
@@ -501,17 +500,29 @@ const CLUSTERS = [
   { key: "sea", label: "South-East Asia", x: 72.26, y: 59.46, scale: 3.4,
     members: ["Myanmar", "Thailand", "Singapore"] },
   { key: "camerica", label: "Central America", x: 11.94, y: 60.73, scale: 5,
-    members: ["Guatemala", "Panama"] }
+    members: ["Guatemala", "Panama"] },
+  // a group within a group: where these are still too close at the
+  // Mediterranean zoom, their own badge appears there and zooms in further,
+  // as far as it takes to set them 26px apart; centre and zoom are worked out
+  // from the members
+  { key: "holy", label: "Holy Land", parent: "med",
+    members: ["Israel", "Palestinian Territories", "Jordan", "Lebanon"] }
 ];
-const CLUSTER_OF = {};
-CLUSTERS.forEach(c => c.members.forEach(m => { CLUSTER_OF[m] = c.key; }));
+const CLUSTER_OF = {};   // country → its top-level group
+CLUSTERS.forEach(c => { if (!c.parent) c.members.forEach(m => { CLUSTER_OF[m] = c.key; }); });
+const clusterByKey = (key) => CLUSTERS.find(c => c.key === key) || null;
+const UNGROUP_MIN_PX = 26;
 
 const UNLABELLED = { "Malta": "Malta", "Palestinian Territories": "Palestine" };
 
-// marker offset in screen px, drawn with a leader line back to the true point.
-// Palestine sits 3px from Israel at world zoom, so once its group is open it
-// is pulled west into the sea, clear of Israel, Jordan and Lebanon.
-const NUDGE = { "Palestinian Territories": [-30, -8] };
+// territories too small to see at a country's own zoom: selecting one zooms in
+// until it is about SMALL_TARGET_PX wide on screen (widths in the artwork's
+// 1600px space); still narrower than RING_BELOW_PX at MAX_ZOOM (Malta on a
+// phone), the selected marker becomes a ring round it instead of a dot on it
+const SMALL_WIDTH = { "Malta": 1.8, "Palestinian Territories": 3.4 };
+const SMALL_TARGET_PX = 40;
+const MAX_ZOOM = 60;
+const RING_BELOW_PX = 32;
 
 const HAS_COMMUNITIES = (name) => ((LOCATIONS[name] || []).length > 0);
 
@@ -694,12 +705,61 @@ class Component extends DCLogic {
     if (el && el.clientWidth && el.clientWidth !== this.state.mapW) this.setState({ mapW: el.clientWidth });
   };
 
+  // which of these countries sit closer than UNGROUP_MIN_PX to another of them
+  // when the map is drawn at zoom s
+  crowdedAmong(live, s) {
+    const w = this.state.mapW * s, h = w * MAP_RATIO, tight = {};
+    live.forEach(a => {
+      const pa = COUNTRY_POINTS[a];
+      const nearest = Math.min(...live.filter(b => b !== a).map(b =>
+        Math.hypot((pa[0] - COUNTRY_POINTS[b][0]) / 100 * w, (pa[1] - COUNTRY_POINTS[b][1]) / 100 * h)));
+      if (nearest < UNGROUP_MIN_PX) tight[a] = true;
+    });
+    return tight;
+  }
+
+  // the countries a group within a group stands for: those still crowded at
+  // its parent's zoom
+  subMembers(c) {
+    const parent = clusterByKey(c.parent);
+    const tight = this.crowdedAmong(parent.members.filter(HAS_COMMUNITIES), parent.scale);
+    const stood = c.members.filter(m => HAS_COMMUNITIES(m) && tight[m]);
+    return stood.length > 1 ? stood : [];
+  }
+
+  // the countries a group's badge and chooser stand for
+  standsFor(c) { return c.parent ? this.subMembers(c) : c.members.filter(HAS_COMMUNITIES); }
+
+  // centre and zoom of a group; a group within a group is centred on its
+  // members and zooms in just far enough to set them UNGROUP_MIN_PX apart
+  clusterView(c) {
+    if (!c.parent) return [c.x, c.y, c.scale];
+    let live = this.subMembers(c);
+    if (live.length < 2) live = c.members.filter(HAS_COMMUNITIES);
+    const xs = live.map(m => COUNTRY_POINTS[m][0]), ys = live.map(m => COUNTRY_POINTS[m][1]);
+    const w = this.state.mapW, h = w * MAP_RATIO;
+    let closest = Infinity;
+    live.forEach((a, i) => live.slice(i + 1).forEach(b => {
+      closest = Math.min(closest, Math.hypot((COUNTRY_POINTS[a][0] - COUNTRY_POINTS[b][0]) / 100 * w,
+        (COUNTRY_POINTS[a][1] - COUNTRY_POINTS[b][1]) / 100 * h));
+    }));
+    const s = Math.max(clusterByKey(c.parent).scale, Math.min(MAX_ZOOM, UNGROUP_MIN_PX * 1.1 / closest));
+    return [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, s];
+  }
+
+  // a country's own zoom, raised for a territory too small to see at it
+  countryScale(name) {
+    const s = COUNTRY_POINTS[name][2] || 3.6;
+    if (!SMALL_WIDTH[name]) return s;
+    return Math.max(s, Math.min(MAX_ZOOM, SMALL_TARGET_PX / (SMALL_WIDTH[name] * this.state.mapW / 1600)));
+  }
+
   view() {
     const sel = this.state.selected;
-    const cl = !sel && this.state.cluster ? CLUSTERS.find(c => c.key === this.state.cluster) : null;
-    const p = sel ? COUNTRY_POINTS[sel] : (cl ? [cl.x, cl.y, cl.scale] : null);
+    const cl = !sel && this.state.cluster ? clusterByKey(this.state.cluster) : null;
+    const p = sel ? COUNTRY_POINTS[sel] : (cl ? this.clusterView(cl) : null);
     if (!p) return { s: 1, tx: 0, ty: 0 };
-    const s = p[2] || 3.6;
+    const s = sel ? this.countryScale(sel) : p[2];
     const clamp = (v) => Math.max(100 - 100 * s, Math.min(0, v));
     return {
       s: s,
@@ -716,19 +776,27 @@ class Component extends DCLogic {
     const w = this.state.mapW, h = w * MAP_RATIO;
     const onMap = (xy) => xy[0] > -3 && xy[0] < 103 && xy[1] > -3 && xy[1] < 103;
     const list = [];
+    const open = !this.state.selected && this.state.cluster ? clusterByKey(this.state.cluster) : null;
+    // members of the open top-level group that an inner badge stands for
+    const inner = {};
+    if (open && !open.parent) {
+      CLUSTERS.filter(c => c.parent === open.key).forEach(c => this.subMembers(c).forEach(m => { inner[m] = c.key; }));
+    }
+    const inOpen = (name) => !!open && (open.parent ? this.subMembers(open).indexOf(name) > -1
+      : CLUSTER_OF[name] === open.key && !inner[name]);
     Object.keys(COUNTRY_POINTS).filter(HAS_COMMUNITIES).forEach(name => {
-      const truth = pt(name);
-      const n = NUDGE[name];
-      const xy = n ? [truth[0] + n[0] / w * 100, truth[1] + n[1] / h * 100] : truth;
-      const grouped = CLUSTER_OF[name];
-      const visible = onMap(xy) && (!grouped || this.state.selected === name || this.state.cluster === grouped);
-      list.push({ kind: "pin", name: name, xy: xy, truth: truth, nudged: !!n, visible: visible });
+      const xy = pt(name);
+      const visible = onMap(xy) && (this.state.selected === name || inOpen(name) ||
+        (!CLUSTER_OF[name] && !(open && open.parent)));
+      list.push({ kind: "pin", name: name, xy: xy, visible: visible });
     });
     CLUSTERS.forEach(c => {
-      const xy = [pt.at(c.x, c.y)[0], pt.at(c.x, c.y)[1]];
-      const live = c.members.filter(HAS_COMMUNITIES).length;
-      list.push({ kind: "cluster", cluster: c, xy: xy, count: live,
-        visible: live > 0 && onMap(xy) && !this.state.selected && this.state.cluster !== c.key });
+      const cv = this.clusterView(c);
+      const xy = pt.at(cv[0], cv[1]);
+      const count = c.parent ? Object.keys(inner).filter(m => inner[m] === c.key).length : c.members.filter(HAS_COMMUNITIES).length;
+      const visible = c.parent ? count > 1 && !!open && open.key === c.parent
+        : count > 0 && !this.state.selected && this.state.cluster !== c.key && !(open && open.parent);
+      list.push({ kind: "cluster", cluster: c, xy: xy, count: count, visible: visible && onMap(xy) });
     });
     const shown = list.filter(m => m.visible);
     shown.forEach(m => {
@@ -743,6 +811,8 @@ class Component extends DCLogic {
 
     const pins = list.filter(m => m.kind === "pin").map(m => {
       const active = this.state.hoverName === m.name || this.state.selected === m.name;
+      const ring = this.state.selected === m.name && !!SMALL_WIDTH[m.name] &&
+        SMALL_WIDTH[m.name] * pt.s * this.state.mapW / 1600 < RING_BELOW_PX;
       const hit = m.hit || 18;
       return {
         name: m.name,
@@ -753,9 +823,10 @@ class Component extends DCLogic {
         size: hit + "px",
         offset: (-hit / 2) + "px 0 0 " + (-hit / 2) + "px",
         display: m.visible ? "flex" : "none",
-        dot: active ? "17px" : "11px",
-        halo: active ? "5px" : "3px",
-        bg: active ? "#00305f" : "#004a9b",
+        dot: ring ? "36px" : (active ? "17px" : "11px"),
+        bg: ring ? "transparent" : (active ? "#00305f" : "#004a9b"),
+        shadow: ring ? "inset 0 0 0 3px #00305f, 0 0 0 2px rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.35)"
+          : "0 0 0 " + (active ? "5px" : "3px") + " rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45)",
         select: () => { if (this.dragged) return; if (this.state.selected === m.name) this.resetView(); else this.selectCountry(m.name); },
         focus: () => this.focusCountry(m.name),
         blur: () => this.clearFocus()
@@ -777,11 +848,7 @@ class Component extends DCLogic {
       };
     });
 
-    const leaders = shown.filter(m => m.kind === "pin" && m.nudged).map(m => ({
-      x1: m.truth[0], y1: m.truth[1], x2: m.xy[0], y2: m.xy[1]
-    }));
-
-    return { pins: pins, clusters: clusters, leaders: leaders };
+    return { pins: pins, clusters: clusters };
   }
 
     onMapPointerDown = (event) => {
@@ -853,6 +920,7 @@ class Component extends DCLogic {
       return [v.tx + v.s * p[0], v.ty + v.s * p[1]];
     };
     pt.at = (x, y) => [v.tx + v.s * x, v.ty + v.s * y];
+    pt.s = v.s;
     const marks = this.buildMarkers(pt);
     const hovered = this.state.hoverName && COUNTRY_POINTS[this.state.hoverName] ? pt(this.state.hoverName) : null;
     const early = this.state.earlier ? EARLIER.find(c => c.name === this.state.earlier.name) : null;
@@ -918,20 +986,19 @@ class Component extends DCLogic {
       onMapDoubleClick: this.onMapDoubleClick,
       mapTransform: "translate(" + v.tx + "%, " + v.ty + "%) scale(" + v.s + ")",
       pins: marks.pins,
-      leaders: marks.leaders,
       clusterMarks: marks.clusters,
       clusterLabel: (() => {
-        const c = CLUSTERS.find(k => k.key === this.state.cluster);
+        const c = clusterByKey(this.state.cluster);
         return this.state.selected || !c ? null : c.label;
       })(),
       clusterCount: (() => {
-        const c = CLUSTERS.find(k => k.key === this.state.cluster);
-        return c ? c.members.filter(HAS_COMMUNITIES).length + " countries" : "";
+        const c = clusterByKey(this.state.cluster);
+        return c ? this.standsFor(c).length + " countries" : "";
       })(),
       clusterCountries: (() => {
-        const c = CLUSTERS.find(k => k.key === this.state.cluster);
+        const c = clusterByKey(this.state.cluster);
         if (!c || this.state.selected) return [];
-        return c.members.filter(HAS_COMMUNITIES).map(name => ({
+        return this.standsFor(c).map(name => ({
           name: name,
           year: COUNTRY_YEARS[name] || "",
           select: () => this.selectCountry(name),

@@ -96,10 +96,21 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   projecting each country's longitude/latitude onto the artwork, hover/tap
   highlight with a tooltip carrying the foundation year, per-country zoom,
   drag-to-pan and double-tap-to-reset while zoomed, the communities panel, the
-  community sheet, and the region chips. Hit areas are sized from the nearest visible marker (12–44px) so no marker can
-  swallow a neighbour's tap; Palestine keeps its offset marker and leader line,
-  pulled west into the sea off Israel's coast. Keyboard focus rings the dot or
-  badge rather than the square hit box.
+  community sheet, and the region chips. Hit areas are sized from the nearest
+  visible marker (12–44px) so no marker can swallow a neighbour's tap. Every
+  marker sits on its own country; none is offset. Keyboard focus rings the dot
+  or badge rather than the square hit box.
+
+  **Holy Land, Malta.** Israel's marker sits in the Negev, clear of the West
+  Bank marker, but the two are still only 2–6px apart at world zoom. Inside
+  the Mediterranean group, the countries still crowded at its zoom (Israel,
+  Palestine, Jordan, Lebanon on a phone; Israel and Palestine on a desktop) get
+  a badge of their own, "Holy Land", which zooms in as far as it takes to set
+  them 26px apart (about 14x on a phone, 5x on a desktop). Selecting Malta or
+  the Palestinian Territories zooms in until the territory is about 40px wide
+  (up to 60x), so the marker is seen on it; where even that leaves the
+  territory smaller than the marker (Malta on a phone), the selected marker is
+  a ring round the island instead of a dot over it.
 
   **Search on the map.** A round button at the map's top-right opens a field
   that finds a country or a community by name as you type: accent-blind
@@ -139,9 +150,7 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   Jordan — the Levant coast is only a few pixels deep even there). The UK and
   Ireland markers sit towards their far sides (Grantham and Tuam) so that from
   968px up they are 26px apart and stand alone; narrower, they share a badge.
-  Crowding uses each country's true position, never its nudged one, so
-  Palestine (3px from Israel) always sits in the group at world zoom. Crowding is
-  measured at world zoom, so the set depends only on width, not on what is
+  Crowding is measured at world zoom, so the set depends only on width, not on what is
   open; a resize that spreads an open group apart returns to the world view
   rather than stranding its chooser. The region chips stay the 44px path to
   every country at every width.
@@ -266,8 +275,10 @@ and the CDN on the next deploy without a hard refresh.
   `#004a9b` to `#75c2ec`; the lightest were too close to the pale blue of
   earlier foundations, so Australia read as "no community today".) The region
   list below the map uses the same deep blue for its dots and highlighted
-  chips; no colour stands for a region. It stays vector because
-  the map zooms to 6x. A marker's position in `js/map.js` is
+  chips; no colour stands for a region. Malta and Gozo are smaller than their
+  own border line at this scale, so they carry a deep-blue outline (the last
+  path, `id="malta"`) instead of the pale border. It stays vector because the
+  map zooms to 60x. A marker's position in `js/map.js` is
   `x% = (lon + 130) / 310 * 100` and
   `y% = (m(72) − m(lat)) / (m(72) − m(−47)) * 100`, with
   `m(φ) = ln(tan(π/4 + φ/2))`.

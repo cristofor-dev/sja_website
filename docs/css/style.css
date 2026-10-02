@@ -818,16 +818,6 @@ blockquote.quote cite {
 
 .map-zoom img { display: block; width: 100%; height: auto; }
 
-.map-leaders {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-  overflow: visible;
-}
-
 .map-marks {
   position: absolute;
   inset: 0;
@@ -869,6 +859,13 @@ blockquote.quote cite {
   height: 17px;
   background: var(--sja-deep);
   box-shadow: 0 0 0 5px rgba(255, 255, 255, .95), 0 2px 6px rgba(0, 49, 95, .45);
+}
+
+.pin.is-ring .pin__dot {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  box-shadow: inset 0 0 0 3px var(--sja-deep), 0 0 0 2px rgba(255, 255, 255, .95), 0 2px 6px rgba(0, 49, 95, .35);
 }
 
 .pin:focus-visible .pin__dot {

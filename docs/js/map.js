@@ -1,6 +1,6 @@
 /* "Where we are" — interactive layer over the blue world map (assets/world-map-blue.svg).
    Ported from the design source (SJA Mobile.dc.html): the same coordinates,
-   zoom scales, clustering, hit-size rules, nudges and panels. */
+   zoom scales, clustering, hit-size rules and panels. */
 (function () {
   'use strict';
 
@@ -43,13 +43,15 @@
   /* [x%, y%, zoomScale] — lon/lat projected onto assets/world-map-blue.svg
      (Mercator, lon -130..180, lat -47..72, 1600x820.4), so every marker sits on its own country.
      The UK (Grantham, 0.6°W 52.9°N) and Ireland (Tuam, 9.0°W 53.5°N) sit towards
-     their far sides so that a full-width map can show them apart (26px+). */
+     their far sides so that a full-width map can show them apart (26px+).
+     Israel's marker sits in the Negev (34.8°E 30.6°N), clear of the West Bank
+     marker (35.3°E 31.9°N), so the Holy Land group can open them apart. */
   var COUNTRY_POINTS = {
     'France': [42.74, 33.21, 4], 'United Kingdom': [41.74, 27.06, 4.4], 'Ireland': [39.03, 26.43, 5],
     'Italy': [46.0, 36.49, 4], 'Malta': [46.59, 42.19, 4], 'Greece': [49.03, 39.41, 4.5],
     'Cyprus': [52.61, 42.93, 6], 'Romania': [49.97, 33.84, 4.2],
     'Tunisia': [44.97, 43.42, 4.5], 'Ethiopia': [54.68, 60.93, 3.6],
-    'Israel': [53.18, 45.67, 6], 'Palestinian Territories': [53.31, 45.19, 6],
+    'Israel': [53.16, 46.18, 6], 'Palestinian Territories': [53.31, 45.19, 6],
     'Syria': [54.39, 42.81, 5], 'Lebanon': [53.5, 43.69, 6], 'Jordan': [53.74, 45.96, 6],
     'India': [67.35, 51.89, 2.8], 'Myanmar': [72.9, 52.57, 3.4], 'Thailand': [74.52, 56.48, 3.6],
     'Singapore': [75.43, 65.57, 6], 'Philippines': [81.35, 58.62, 4],
@@ -77,21 +79,38 @@
     { key: 'sea', label: 'South-East Asia', x: 72.26, y: 59.46, scale: 3.4,
       members: ['Myanmar', 'Thailand', 'Singapore'] },
     { key: 'camerica', label: 'Central America', x: 11.94, y: 60.73, scale: 5,
-      members: ['Guatemala', 'Panama'] }
+      members: ['Guatemala', 'Panama'] },
+    /* a group within a group: where these are still too close at the
+       Mediterranean zoom (always on a phone), their own badge appears there and
+       zooms in further, as far as it takes to set them 26px apart. Its centre
+       and zoom are worked out from the members below. */
+    { key: 'holy', label: 'Holy Land', parent: 'med',
+      members: ['Israel', 'Palestinian Territories', 'Jordan', 'Lebanon'] }
   ];
 
-  var CLUSTER_OF = {};
+  var CLUSTER_OF = {};      /* country → its top-level group */
+  var SUB_OF = {};          /* country → the group within a group it belongs to */
   CLUSTERS.forEach(function (c) {
-    c.members.forEach(function (m) { CLUSTER_OF[m] = c.key; });
+    c.members.forEach(function (m) { (c.parent ? SUB_OF : CLUSTER_OF)[m] = c.key; });
   });
+
+  function clusterByKey(key) {
+    for (var i = 0; i < CLUSTERS.length; i++) if (CLUSTERS[i].key === key) return CLUSTERS[i];
+    return null;
+  }
 
   /* the smallest territories get a name label beside their marker */
   var UNLABELLED = { 'Malta': 'Malta', 'Palestinian Territories': 'Palestine' };
 
-  /* marker offset in screen px, drawn with a leader line back to the true point.
-     Palestine sits 3px from Israel at world zoom, so once its group is open it
-     is pulled west into the sea, clear of Israel, Jordan and Lebanon. */
-  var NUDGE = { 'Palestinian Territories': [-30, -8] };
+  /* Territories too small to see at a country's own zoom: selecting one zooms
+     in until it is about SMALL_TARGET_PX wide on screen, so its marker is seen
+     to sit on it. Widths are in the artwork's 1600px space. */
+  var SMALL_WIDTH = { 'Malta': 1.8, 'Palestinian Territories': 3.4 };
+  var SMALL_TARGET_PX = 40;
+  var MAX_ZOOM = 60;
+  /* still narrower than this on screen at MAX_ZOOM (Malta on a phone), the
+     selected marker becomes a ring round the territory instead of a dot on it */
+  var RING_BELOW_PX = 32;
 
   var MAP_RATIO = 820.43 / 1600;
 
@@ -117,23 +136,77 @@
      drawn — not on what is currently selected, open or panned. That keeps the
      set stable while a group is open, and makes it recompute on resize. */
   function crowded() {
-    var w = state.mapW, h = w * MAP_RATIO;
-    var live = Object.keys(COUNTRY_POINTS).filter(has);
-    /* true positions, not nudged ones: a nudge separates a marker from its
-       neighbour inside an open group, it must not lift it out of the group */
-    var pos = {};
-    live.forEach(function (name) { pos[name] = COUNTRY_POINTS[name]; });
+    return crowdedAmong(Object.keys(COUNTRY_POINTS).filter(has), 1);
+  }
+
+  /* which of these countries sit closer than UNGROUP_MIN_PX to another of them
+     when the map is drawn at zoom s */
+  function crowdedAmong(live, s) {
+    var w = state.mapW * s, h = w * MAP_RATIO;
     var tight = {};
     live.forEach(function (a) {
-      var nearest = Infinity;
+      var pa = COUNTRY_POINTS[a], nearest = Infinity;
       live.forEach(function (b) {
         if (a === b) return;
-        nearest = Math.min(nearest, Math.hypot((pos[a][0] - pos[b][0]) / 100 * w,
-                                               (pos[a][1] - pos[b][1]) / 100 * h));
+        var pb = COUNTRY_POINTS[b];
+        nearest = Math.min(nearest, Math.hypot((pa[0] - pb[0]) / 100 * w, (pa[1] - pb[1]) / 100 * h));
       });
       if (nearest < UNGROUP_MIN_PX) tight[a] = true;
     });
     return tight;
+  }
+
+  /* centre and zoom of a group. A group within a group is centred on its
+     members and zooms in just far enough to set them UNGROUP_MIN_PX apart. */
+  function clusterView(c) {
+    if (!c.parent) return [c.x, c.y, c.scale];
+    var live = subMembers(c);
+    if (live.length < 2) live = c.members.filter(has);
+    var xs = live.map(function (m) { return COUNTRY_POINTS[m][0]; });
+    var ys = live.map(function (m) { return COUNTRY_POINTS[m][1]; });
+    var w = state.mapW, h = w * MAP_RATIO, closest = Infinity;
+    live.forEach(function (a, i) {
+      live.slice(i + 1).forEach(function (b) {
+        var pa = COUNTRY_POINTS[a], pb = COUNTRY_POINTS[b];
+        closest = Math.min(closest, Math.hypot((pa[0] - pb[0]) / 100 * w, (pa[1] - pb[1]) / 100 * h));
+      });
+    });
+    var s = Math.max(clusterByKey(c.parent).scale, Math.min(MAX_ZOOM, UNGROUP_MIN_PX * 1.1 / closest));
+    return [(Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2,
+            (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2, s];
+  }
+
+  /* a country's own zoom, raised for a territory too small to see at it */
+  function countryScale(name) {
+    var p = COUNTRY_POINTS[name], s = p[2] || 3.6;
+    if (SMALL_WIDTH[name]) s = Math.max(s, Math.min(MAX_ZOOM, SMALL_TARGET_PX / (SMALL_WIDTH[name] * state.mapW / 1600)));
+    return s;
+  }
+
+  /* with a top-level group open, the members of a group within it that are
+     still crowded at that zoom: its badge stands for them */
+  function subGrouped(open) {
+    var out = {};
+    if (!open || open.parent) return out;
+    var tightHere = crowdedAmong(open.members.filter(has), open.scale);
+    CLUSTERS.forEach(function (c) {
+      if (c.parent !== open.key) return;
+      var stood = c.members.filter(function (m) { return has(m) && tightHere[m]; });
+      if (stood.length > 1) stood.forEach(function (m) { out[m] = c.key; });
+    });
+    return out;
+  }
+
+  /* the countries a group within a group stands for: those still crowded at
+     its parent's zoom, which is what its badge counted */
+  function subMembers(c) {
+    var sub = subGrouped(clusterByKey(c.parent));
+    return c.members.filter(function (m) { return sub[m] === c.key; });
+  }
+
+  /* the countries a group's badge and chooser stand for */
+  function standsFor(c, tight) {
+    return c.parent ? subMembers(c) : groupedMembers(c, tight);
   }
 
   /* the members a group's badge actually stands for: those still too crowded
@@ -170,7 +243,6 @@
   var badgeEls = {};
   var badgeCountEls = {};
   var chipEls = {};
-  var leaderEls = {};
   var earlierEls = {};
   var drag = null;
   var dragged = false;
@@ -180,13 +252,10 @@
 
   function view() {
     var sel = state.selected;
-    var cl = null;
-    if (!sel && state.cluster) {
-      CLUSTERS.forEach(function (c) { if (c.key === state.cluster) cl = c; });
-    }
-    var p = sel ? COUNTRY_POINTS[sel] : (cl ? [cl.x, cl.y, cl.scale] : null);
+    var cl = !sel && state.cluster ? clusterByKey(state.cluster) : null;
+    var p = sel ? COUNTRY_POINTS[sel] : (cl ? clusterView(cl) : null);
     if (!p) return { s: 1, tx: 0, ty: 0 };
-    var s = p[2] || 3.6;
+    var s = sel ? countryScale(sel) : p[2];
     var clamp = function (v) { return Math.max(100 - 100 * s, Math.min(0, v)); };
     return {
       s: s,
@@ -207,23 +276,38 @@
     var onMap = function (xy) { return xy[0] > -3 && xy[0] < 103 && xy[1] > -3 && xy[1] < 103; };
     var list = [];
 
+    var open = !state.selected && state.cluster ? clusterByKey(state.cluster) : null;
+    var sub = subGrouped(open);
+
+    /* in the open group: a top-level group shows its members except those its
+       inner badge stands for; a group within a group shows its own members */
+    var inOpen = function (name) {
+      if (!open) return false;
+      if (open.parent) return subMembers(open).indexOf(name) > -1;
+      return CLUSTER_OF[name] === open.key && !sub[name];
+    };
+
     Object.keys(COUNTRY_POINTS).filter(has).forEach(function (name) {
       var p = COUNTRY_POINTS[name];
-      var truth = at(p[0], p[1]);
-      var n = NUDGE[name];
-      var xy = n ? [truth[0] + n[0] / w * 100, truth[1] + n[1] / h * 100] : truth;
+      var xy = at(p[0], p[1]);
       var grouped = CLUSTER_OF[name];
-      var visible = onMap(xy) && (!grouped || !tight[name] || state.selected === name || state.cluster === grouped);
-      list.push({ kind: 'pin', name: name, xy: xy, truth: truth, nudged: !!n, visible: visible });
+      var visible = onMap(xy) && (state.selected === name || inOpen(name) ||
+        (!grouped || !tight[name]) && !(open && open.parent));
+      list.push({ kind: 'pin', name: name, xy: xy, visible: visible });
     });
 
     CLUSTERS.forEach(function (c) {
-      var xy = at(c.x, c.y);
-      var stood = groupedMembers(c, tight);
-      list.push({
-        kind: 'cluster', cluster: c, xy: xy, count: stood.length,
-        visible: stood.length > 1 && onMap(xy) && !state.selected && state.cluster !== c.key
-      });
+      var cv = clusterView(c);
+      var xy = at(cv[0], cv[1]);
+      var count, visible;
+      if (c.parent) {
+        count = Object.keys(sub).filter(function (m) { return sub[m] === c.key; }).length;
+        visible = count > 1 && !!open && open.key === c.parent;
+      } else {
+        count = groupedMembers(c, tight).length;
+        visible = count > 1 && !state.selected && state.cluster !== c.key && !(open && open.parent);
+      }
+      list.push({ kind: 'cluster', cluster: c, xy: xy, count: count, visible: visible && onMap(xy) });
     });
 
     var shown = list.filter(function (m) { return m.visible; });
@@ -409,18 +493,6 @@
       badgeEls[c.key] = btn;
       badgeCountEls[c.key] = count;
     });
-
-    Object.keys(NUDGE).forEach(function (name) {
-      var line = document.createElementNS(SVG_NS, 'line');
-      line.setAttribute('stroke', '#004a9b');
-      line.setAttribute('stroke-width', '1.6');
-      line.setAttribute('stroke-linecap', 'round');
-      line.setAttribute('vector-effect', 'non-scaling-stroke');
-      line.setAttribute('opacity', '0.75');
-      line.style.display = 'none';
-      el.leaders.appendChild(line);
-      leaderEls[name] = line;
-    });
   }
 
   function buildRegions() {
@@ -530,7 +602,6 @@
       if (!node) return;
       if (!m.visible) {
         node.style.display = 'none';
-        if (m.kind === 'pin' && leaderEls[m.name]) leaderEls[m.name].style.display = 'none';
         return;
       }
       var hit = m.hit || 18;
@@ -550,18 +621,8 @@
       if (m.kind === 'pin') {
         var active = state.hoverName === m.name || state.selected === m.name;
         node.classList.toggle('is-active', active);
-        var line = leaderEls[m.name];
-        if (line) {
-          if (m.nudged) {
-            line.style.display = '';
-            line.setAttribute('x1', m.truth[0]);
-            line.setAttribute('y1', m.truth[1]);
-            line.setAttribute('x2', m.xy[0]);
-            line.setAttribute('y2', m.xy[1]);
-          } else {
-            line.style.display = 'none';
-          }
-        }
+        node.classList.toggle('is-ring', state.selected === m.name && !!SMALL_WIDTH[m.name] &&
+          SMALL_WIDTH[m.name] * v.s * state.mapW / 1600 < RING_BELOW_PX);
       }
     });
 
@@ -606,14 +667,14 @@
       CLUSTERS.forEach(function (c) { if (c.key === state.cluster) open = c; });
     }
     var key = (state.selected || '') + '|' + (state.cluster || '') + '|' +
-      (open ? groupedMembers(open, tight).join(',') : '');
+      (open ? standsFor(open, tight).join(',') : '');
     if (key === panelKey) return;
     panelKey = key;
 
     /* cluster chooser */
     var cl = open;
     if (cl) {
-      var live = groupedMembers(cl, tight);
+      var live = standsFor(cl, tight);
       el.clusterTitle.textContent = cl.label;
       el.clusterCount.textContent = live.length + ' countries';
       el.clusterRows.innerHTML = '';
@@ -902,7 +963,7 @@
       if (state.cluster) {
         var open = null;
         CLUSTERS.forEach(function (c) { if (c.key === state.cluster) open = c; });
-        if (open && groupedMembers(open, crowded()).length < 2) {
+        if (open && standsFor(open, crowded()).length < 2) {
           state.cluster = null;
           state.hoverName = null;
           state.pan = { x: 0, y: 0 };
@@ -917,7 +978,6 @@
     if (!el.frame) return;
     el.zoom = document.getElementById('mapZoom');
     el.marks = document.getElementById('mapMarks');
-    el.leaders = document.getElementById('mapLeaders');
     el.tip = document.getElementById('mapTip');
     el.regions = document.getElementById('regionList');
 

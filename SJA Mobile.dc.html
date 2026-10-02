@@ -794,11 +794,18 @@ class Component extends DCLogic {
   // zoom to s, keeping the map point under frame point (fx, fy) — in % of the
   // frame — where it is; the pan is restated from where the map really is
   zoomTo = (s, fx, fy) => {
-    const p = this.baseView(), v = this.view();
+    let p = this.baseView(); const v = this.view();
     s = Math.max(1, Math.min(MAX_ZOOM, s));
     if (Math.abs(s - v.s) < 1e-6) return;
     const cx = (fx - v.tx) / v.s, cy = (fy - v.ty) / v.s;
-    this.setState({ zoomBy: s / p[2], earlier: null,
+    // zooming out past an open group's own zoom leaves the group, so its
+    // countries can regroup under their badge
+    let leave = {};
+    if (this.state.cluster && s < p[2] - 1e-6) {
+      leave = { cluster: null, hoverName: null, hoverBadge: null };
+      p = [50, 50, 1];
+    }
+    this.setState({ ...leave, zoomBy: s / p[2], earlier: null,
       pan: { x: fx - s * cx - 50 + s * p[0], y: fy - s * cy - 50 + s * p[1] } });
   };
 
@@ -843,20 +850,27 @@ class Component extends DCLogic {
     const live = Object.keys(COUNTRY_POINTS).filter(HAS_COMMUNITIES);
     const tightHere = open && open.parent ? this.crowdedAmong(live, pt.s) : null;
     // zoomed in on the world by hand, groups split as their countries spread
-    const free = !this.state.selected && !this.state.cluster && this.state.zoomBy > 1;
+    // zoomed by hand on the world, or out past a selected country's own zoom,
+    // crowding is measured at the zoom shown: groups split as you zoom in and
+    // regroup as you zoom out
+    const sel = this.state.selected;
+    const free = !this.state.cluster && (sel ? this.state.zoomBy < 1 : this.state.zoomBy > 1);
     const tightFree = free ? this.crowdedAmong(live, pt.s) : null;
+    // the countries a top-level badge stands for; the selected country keeps
+    // its own marker, so it never counts
+    const standing = (c) => c.members.filter(m => HAS_COMMUNITIES(m) && m !== sel && (!free || tightFree[m]));
     live.forEach(name => {
       const xy = pt(name);
       const visible = onMap(xy) && (this.state.selected === name || inOpen(name) ||
-        (tightHere ? !tightHere[name] : (!CLUSTER_OF[name] || (free && !tightFree[name]))));
+        (tightHere ? !tightHere[name] : (!CLUSTER_OF[name] || (free && (!tightFree[name] || standing(clusterByKey(CLUSTER_OF[name])).length < 2)))));
       list.push({ kind: "pin", name: name, xy: xy, visible: visible });
     });
     CLUSTERS.forEach(c => {
       const cv = this.clusterView(c);
       const xy = pt.at(cv[0], cv[1]);
-      const count = c.parent ? Object.keys(inner).filter(m => inner[m] === c.key).length : c.members.filter(m => HAS_COMMUNITIES(m) && (!free || tightFree[m])).length;
+      const count = c.parent ? Object.keys(inner).filter(m => inner[m] === c.key).length : standing(c).length;
       const visible = c.parent ? count > 1 && !!open && open.key === c.parent
-        : count > (free ? 1 : 0) && !this.state.selected && this.state.cluster !== c.key && !(open && open.parent);
+        : count > (free ? 1 : 0) && (!sel || free) && this.state.cluster !== c.key && !(open && open.parent);
       list.push({ kind: "cluster", cluster: c, xy: xy, count: count, visible: visible && onMap(xy) });
     });
     const shown = list.filter(m => m.visible);

@@ -285,6 +285,14 @@
     s = Math.max(1, Math.min(MAX_ZOOM, s));
     if (Math.abs(s - v.s) < 1e-6) return;
     var cx = (fx - v.tx) / v.s, cy = (fy - v.ty) / v.s;
+    /* zooming out past an open group's own zoom leaves the group, so its
+       countries can regroup under their badge */
+    if (state.cluster && s < p[2] - 1e-6) {
+      state.cluster = null;
+      state.hoverName = null;
+      state.hoverBadge = null;
+      p = baseView();
+    }
     state.zoomBy = s / p[2];
     /* panned past the edge, the pan is clamped; restate it from where the
        map really is so the next drag starts there */
@@ -300,8 +308,11 @@
   function geometry() {
     var v = view();
     /* zoomed in on the world by hand, groups split as their countries spread */
-    var tight = state.selected || state.cluster ? crowded()
-      : crowdedAmong(Object.keys(COUNTRY_POINTS).filter(has), v.s);
+    /* zoomed by hand on the world, or out past a selected country's own zoom,
+       crowding is measured at the zoom shown, so groups split as you zoom in
+       and regroup as you zoom out */
+    var free = !state.cluster && (!state.selected || state.zoomBy < 1);
+    var tight = free ? crowdedAmong(Object.keys(COUNTRY_POINTS).filter(has), v.s) : crowded();
     var w = state.mapW, h = w * MAP_RATIO;
     var at = function (x, y) { return [v.tx + v.s * x, v.ty + v.s * y]; };
     var onMap = function (xy) { return xy[0] > -3 && xy[0] < 103 && xy[1] > -3 && xy[1] < 103; };
@@ -324,12 +335,19 @@
     var live = Object.keys(COUNTRY_POINTS).filter(has);
     var tightHere = open && open.parent ? crowdedAmong(live, v.s) : null;
 
+    /* a crowded country hides only behind a badge that is really shown: one
+       standing for at least two countries besides the selected one */
+    var badgeFor = function (key) {
+      return clusterByKey(key) && groupedMembers(clusterByKey(key), tight)
+        .filter(function (m) { return m !== state.selected; }).length > 1;
+    };
+
     live.forEach(function (name) {
       var p = COUNTRY_POINTS[name];
       var xy = at(p[0], p[1]);
       var grouped = CLUSTER_OF[name];
       var visible = onMap(xy) && (state.selected === name || inOpen(name) ||
-        (tightHere ? !tightHere[name] : !grouped || !tight[name]));
+        (tightHere ? !tightHere[name] : !grouped || !tight[name] || !badgeFor(grouped)));
       list.push({ kind: 'pin', name: name, xy: xy, visible: visible });
     });
 
@@ -341,8 +359,10 @@
         count = Object.keys(sub).filter(function (m) { return sub[m] === c.key; }).length;
         visible = count > 1 && !!open && open.key === c.parent;
       } else {
-        count = groupedMembers(c, tight).length;
-        visible = count > 1 && !state.selected && state.cluster !== c.key && !(open && open.parent);
+        /* the selected country keeps its own marker, so its group's badge
+           stands for the others */
+        count = groupedMembers(c, tight).filter(function (m) { return m !== state.selected; }).length;
+        visible = count > 1 && (!state.selected || free) && state.cluster !== c.key && !(open && open.parent);
       }
       list.push({ kind: 'cluster', cluster: c, xy: xy, count: count, visible: visible && onMap(xy) });
     });

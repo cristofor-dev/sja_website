@@ -109,3 +109,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 62. **Group badges in their own blue (design + site build)**: group badges, on the map and in the key, are now filled with the brighter palette blue #046bd2 instead of the country markers' #004a9b, so a group never reads as a single country. White on #046bd2 keeps a 5:1 contrast for the count.
 
 63. **Country markers match the group badges (design + site build)**: country markers (the dot, the hollow ring and the key's dot) now use the same brighter blue #046bd2 as the group badges; a hovered or selected marker still turns deep #00305f.
+
+64. **Zooming out regroups (design + site build)**: zooming out with − or a pinch now brings the group badges back. Zoomed out past an open group's own zoom, the map leaves the group (its chooser closes) and its countries regroup under their badge; zoomed out past a selected country's own zoom, crowding is measured at the zoom shown, so the other countries regroup while the selected one keeps its own marker (and is left out of its group's count). A crowded country stays visible whenever its group has no badge to stand in for it.

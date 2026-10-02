@@ -100,7 +100,7 @@
   }
 
   /* the smallest territories get a name label beside their marker */
-  var UNLABELLED = { 'Malta': 'Malta', 'Palestinian Territories': 'Palestine' };
+  var UNLABELLED = { 'Malta': 'Malta' };
 
   /* Territories too small to see at a country's own zoom: selecting one zooms
      in until it is about SMALL_TARGET_PX wide on screen, so its marker is seen

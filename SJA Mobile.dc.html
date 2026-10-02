@@ -513,7 +513,7 @@ CLUSTERS.forEach(c => { if (!c.parent) c.members.forEach(m => { CLUSTER_OF[m] = 
 const clusterByKey = (key) => CLUSTERS.find(c => c.key === key) || null;
 const UNGROUP_MIN_PX = 26;
 
-const UNLABELLED = { "Malta": "Malta", "Palestinian Territories": "Palestine" };
+const UNLABELLED = { "Malta": "Malta" };
 
 // territories too small to see at a country's own zoom: selecting one zooms in
 // until it is about SMALL_TARGET_PX wide on screen (widths in the artwork's

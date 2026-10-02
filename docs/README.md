@@ -125,7 +125,8 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   one path, so the script splits it into rings, gives each ring containing a
   country's reference point to that country, gives every other ring (islands,
   exclaves) to the nearest mainland coast, and simplifies the outlines (21KB).
-  Re-run it whenever the artwork changes. A map label never leaves the frame:
+  It writes the same file to `../assets/earlier-foundations.js` for the design
+  file. Re-run it whenever the artwork changes. A map label never leaves the frame:
   it slides in from the edges and drops below its point near the top.
 
   **Grouping adapts to the map's width.** A country carries its own marker as

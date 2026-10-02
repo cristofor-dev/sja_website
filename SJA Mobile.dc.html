@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="assets/earlier-foundations.js"></script>
 </head>
 <body>
 <x-dc>
@@ -287,9 +288,12 @@
         </div>
 
         <div style="position:relative; margin:0 18px 18px; background:#ffffff; border-radius:10px; overflow:visible; box-shadow:0 16px 34px -18px rgba(0,49,95,.5);">
-          <div style="position:relative; overflow:hidden; border-radius:10px 10px 0 0; background:#ffffff; touch-action:{{ mapTouch }}; cursor:{{ mapCursor }};" ref="{{ mapContainerRef }}" onPointerDown="{{ onMapPointerDown }}" onPointerMove="{{ onMapPointerMove }}" onPointerUp="{{ onMapPointerUp }}" onPointerCancel="{{ onMapPointerUp }}" onPointerLeave="{{ onMapPointerUp }}" onDoubleClick="{{ onMapDoubleClick }}">
+          <div style="position:relative; overflow:hidden; border-radius:10px 10px 0 0; background:#ffffff; touch-action:{{ mapTouch }}; cursor:{{ mapCursor }};" ref="{{ mapContainerRef }}" onPointerDown="{{ onMapPointerDown }}" onPointerMove="{{ onMapPointerMove }}" onPointerUp="{{ onMapPointerUp }}" onPointerCancel="{{ onMapPointerUp }}" onPointerLeave="{{ onMapPointerUp }}" onDoubleClick="{{ onMapDoubleClick }}" onClick="{{ onMapClick }}">
             <div style="position:relative; width:100%; transform:{{ mapTransform }}; transform-origin:0 0; transition:{{ mapTransition }}; pointer-events:none;">
               <img src="assets/world-map-blue.svg" alt="World map with the twenty-four countries where the Sisters are present shaded in blue" style="display:block; width:100%; height:auto;">
+              <sc-for list="{{ earlier }}" as="e" hint-placeholder-count="13">
+                <svg viewBox="0 0 1600 820.4" preserveAspectRatio="none" aria-hidden="true" style="position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none;"><path d="{{ e.d }}" fill="{{ e.fill }}" fill-rule="evenodd" onMouseEnter="{{ e.enter }}" onMouseLeave="{{ e.leave }}" onClick="{{ e.tap }}" style="pointer-events:visiblePainted; transition:fill .15s ease;"></path></svg>
+              </sc-for>
             </div>
             <sc-for list="{{ leaders }}" as="l" hint-placeholder-count="1">
               <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" style="position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; overflow:visible;"><line x1="{{ l.x1 }}" y1="{{ l.y1 }}" x2="{{ l.x2 }}" y2="{{ l.y2 }}" stroke="#004a9b" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity="0.75"></line></svg>
@@ -306,7 +310,7 @@
               </button>
             </sc-for>
             <sc-if value="{{ hoverName }}" hint-placeholder-val="{{ false }}">
-              <div style="position:absolute; left:{{ tipLeft }}; top:{{ tipTop }}; transform:translate(-50%,-160%); background:#004a9b; color:#ffffff; font-size:13px; font-weight:500; padding:6px 12px; border-radius:6px; white-space:nowrap; pointer-events:none; box-shadow:0 10px 20px -6px rgba(0,49,95,.6); z-index:5;">{{ hoverName }}</div>
+              <div style="position:absolute; left:{{ tipLeft }}; top:{{ tipTop }}; transform:{{ tipTransform }}; background:#004a9b; color:#ffffff; font-size:13px; font-weight:500; padding:6px 12px; border-radius:6px; white-space:nowrap; text-align:center; pointer-events:none; box-shadow:0 10px 20px -6px rgba(0,49,95,.6); z-index:5;">{{ hoverName }}<sc-if value="{{ tipSub }}" hint-placeholder-val="{{ false }}"><span style="display:block; font-size:11px; font-weight:400; opacity:.8;">{{ tipSub }}</span></sc-if></div>
             </sc-if>
           </div>
           <div ref="{{ searchRef }}" role="search" style="position:absolute; top:8px; left:8px; right:8px; z-index:8; pointer-events:none;">
@@ -336,7 +340,7 @@
               </sc-if>
             </sc-if>
           </div>
-          <div style="padding:10px 14px 12px; font-size:12px; line-height:1.5; color:#475569; background:#f4f9fe; border-radius:0 0 10px 10px;">Deep blue: present today. Pale blue: countries of earlier foundations. The year shown on selection is the first foundation in that country. Tap a marker to see the communities there today; when zoomed in, drag to move the map and double-tap to return to the world.</div>
+          <div style="padding:10px 14px 12px; font-size:12px; line-height:1.5; color:#475569; background:#f4f9fe; border-radius:0 0 10px 10px;">Deep blue: present today. Pale blue: countries of earlier foundations, with no community today; hover or tap one for its name and year. The year shown on selection is the first foundation in that country. Tap a marker to see the communities there today; when zoomed in, drag to move the map and double-tap to return to the world.</div>
         </div>
 
         <sc-if value="{{ clusterLabel }}" hint-placeholder-val="{{ false }}">
@@ -519,6 +523,16 @@ const SEARCH_ALIASES = {
   "Myanmar": ["Burma"]
 };
 const SEARCH_MAX = 8;
+
+// countries of earlier foundations (pale blue, no community today), from
+// assets/earlier-foundations.js (generated by tools/earlier_foundations.py):
+// hover or tap shows the name and year only
+const EARLIER = window.SJA_EARLIER_FOUNDATIONS || [];
+const EARLIER_ALIASES = {
+  "United States": ["USA", "US", "America"],
+  "Turkey": ["Türkiye"],
+  "Former Yugoslavia": ["Yugoslavia", "Serbia", "Croatia", "Bosnia", "Slovenia", "Macedonia", "Montenegro", "Kosovo"]
+};
 const fold = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const SEARCH_INDEX = [];
 REGIONS.forEach(r => r.items.filter(HAS_COMMUNITIES).forEach(country => {
@@ -529,6 +543,9 @@ REGIONS.forEach(r => r.items.filter(HAS_COMMUNITIES).forEach(country => {
   LOCATIONS[country].forEach(loc => SEARCH_INDEX.push({ kind: "community", name: loc, country: country,
     label: loc, where: country, keys: [fold(loc)] }));
 }));
+EARLIER.forEach(c => SEARCH_INDEX.push({ kind: "earlier", name: c.name, label: c.name,
+  where: "Earlier foundation" + (c.year ? ", " + c.year : "") + " · no community today",
+  keys: [c.name].concat(EARLIER_ALIASES[c.name] || []).map(fold) }));
 
 // every term must appear in one of the entry's names; a name that starts with
 // the query ranks first, then a word that does; countries edge out communities
@@ -539,7 +556,7 @@ function searchScore(entry, q, terms) {
     const s = key.indexOf(q) === 0 ? 4 : ((" " + key).indexOf(" " + terms[0]) > -1 ? 2 : 1);
     best = Math.max(best, s);
   });
-  return best ? best * 2 + (entry.kind === "country" ? 1 : 0) : 0;
+  return best ? best * 2 + (entry.kind === "country" ? 1 : entry.kind === "earlier" ? 0.5 : 0) : 0;
 }
 
 function searchFind(query) {
@@ -581,7 +598,7 @@ function searchParts(label, terms) {
 }
 
 class Component extends DCLogic {
-  state = { menuOpen: false, open: null, openFull: "Who we are", slide: 0, mapLoading: true, hoverName: null, hoverX: 0, hoverY: 0, selected: null, community: null, cluster: null, mapW: 390, pan: { x: 0, y: 0 }, dragging: false, searchOpen: false, searchQuery: "", searchActive: -1 };
+  state = { menuOpen: false, open: null, openFull: "Who we are", slide: 0, mapLoading: true, hoverName: null, hoverX: 0, hoverY: 0, selected: null, community: null, cluster: null, mapW: 390, pan: { x: 0, y: 0 }, dragging: false, searchOpen: false, searchQuery: "", searchActive: -1, earlier: null };
   mapContainerRef = React.createRef();
   searchRef = React.createRef();
   searchInputRef = React.createRef();
@@ -596,12 +613,40 @@ class Component extends DCLogic {
     this.measure();
     window.addEventListener("resize", this.measure);
     document.addEventListener("pointerdown", this.onOutsidePointer);
+    document.addEventListener("keydown", this.onEscape);
   }
   componentWillUnmount() {
     clearInterval(this.timer);
     window.removeEventListener("resize", this.measure);
     document.removeEventListener("pointerdown", this.onOutsidePointer);
+    document.removeEventListener("keydown", this.onEscape);
   }
+
+  onEscape = (event) => { if (event.key === "Escape" && this.state.earlier) this.setState({ earlier: null }); };
+
+  // hover shows an earlier foundation while the pointer is over it; a tap pins
+  // it until the next tap, Escape, a tap on the sea or a choice elsewhere
+  showEarlier = (name, pinned) => {
+    const cur = this.state.earlier;
+    if (cur && cur.pinned && !pinned) return;
+    this.setState({ earlier: { name: name, pinned: !!pinned } });
+  };
+
+  hideEarlier = (force) => {
+    const cur = this.state.earlier;
+    if (!cur || (cur.pinned && !force)) return;
+    this.setState({ earlier: null });
+  };
+
+  tapEarlier = (event, name) => {
+    if (this.dragged) return;
+    event.stopPropagation();
+    const cur = this.state.earlier;
+    if (cur && cur.name === name && cur.pinned) this.hideEarlier(true);
+    else this.showEarlier(name, true);
+  };
+
+  onMapClick = () => { if (!this.dragged) this.hideEarlier(true); };
 
   // a tap anywhere else closes the search without stealing that tap
   onOutsidePointer = (event) => {
@@ -630,9 +675,15 @@ class Component extends DCLogic {
 
   // a country zooms in as its marker would; a community also opens its sheet
   chooseSearch = (entry) => {
+    if (entry.kind === "earlier") {
+      // back to the world view, where every earlier foundation is in frame
+      this.setState({ searchOpen: false, searchQuery: "", searchActive: -1, selected: null, hoverName: null,
+        cluster: null, community: null, pan: { x: 0, y: 0 }, earlier: { name: entry.name, pinned: true } });
+      return;
+    }
     const country = entry.kind === "country" ? entry.name : entry.country;
     this.setState({ searchOpen: false, searchQuery: "", searchActive: -1,
-      selected: country, hoverName: country, cluster: null, pan: { x: 0, y: 0 },
+      selected: country, hoverName: country, cluster: null, pan: { x: 0, y: 0 }, earlier: null,
       community: entry.kind === "community" ? entry.name : null });
   };
 
@@ -769,12 +820,12 @@ class Component extends DCLogic {
 
   selectCountry = (name) => {
     if (!COUNTRY_POINTS[name]) return;
-    this.setState({ selected: name, hoverName: name, community: null, cluster: null, pan: { x: 0, y: 0 } });
+    this.setState({ selected: name, hoverName: name, community: null, cluster: null, pan: { x: 0, y: 0 }, earlier: null });
   };
 
-  resetView = () => { this.setState({ selected: null, hoverName: null, community: null, cluster: null, pan: { x: 0, y: 0 } }); };
+  resetView = () => { this.setState({ selected: null, hoverName: null, community: null, cluster: null, pan: { x: 0, y: 0 }, earlier: null }); };
 
-  openCluster = (key) => { this.setState({ cluster: key, selected: null, hoverName: null, community: null, pan: { x: 0, y: 0 } }); };
+  openCluster = (key) => { this.setState({ cluster: key, selected: null, hoverName: null, community: null, pan: { x: 0, y: 0 }, earlier: null }); };
 
   focusCountry = (name) => { if (!this.state.selected) this.setState({ hoverName: name }); };
 
@@ -802,6 +853,21 @@ class Component extends DCLogic {
     pt.at = (x, y) => [v.tx + v.s * x, v.ty + v.s * y];
     const marks = this.buildMarkers(pt);
     const hovered = this.state.hoverName && COUNTRY_POINTS[this.state.hoverName] ? pt(this.state.hoverName) : null;
+    const early = this.state.earlier ? EARLIER.find(c => c.name === this.state.earlier.name) : null;
+    // the frame clips what overflows it, so keep the label inside: pin it to
+    // an edge when its point is near one, and drop it below the point near the top
+    const tip = (() => {
+      const at = hovered || (early ? pt.at(early.x, early.y) : null);
+      if (!at) return { left: "50%", top: "50%", transform: "translate(-50%,-160%)" };
+      const w = this.state.mapW, h = w * MAP_RATIO;
+      const x = at[0] / 100 * w, y = at[1] / 100 * h;
+      const half = early && !hovered ? 115 : 80;
+      const below = y < (early && !hovered ? 56 : 50);
+      const tx = x < half ? "0" : (x > w - half ? "-100%" : "-50%");
+      const left = x < half ? 4 : (x > w - half ? w - 4 : x);
+      return { left: left + "px", top: y + "px",
+        transform: "translate(" + tx + "," + (below ? "14px" : (early && !hovered ? "calc(-100% - 12px)" : "-160%")) + ")" };
+    })();
     const found = searchFind(this.state.searchQuery);
     return {
       searchRef: this.searchRef,
@@ -871,9 +937,21 @@ class Component extends DCLogic {
           blur: () => this.clearFocus()
         }));
       })(),
-      hoverName: this.state.hoverName ? this.state.hoverName + (COUNTRY_YEARS[this.state.hoverName] ? " · " + COUNTRY_YEARS[this.state.hoverName] : "") : null,
-      tipLeft: hovered ? hovered[0] + "%" : "50%",
-      tipTop: hovered ? hovered[1] + "%" : "50%",
+      earlier: EARLIER.filter(c => c.d).map(c => ({
+        d: c.d,
+        fill: early && early.name === c.name ? "rgba(0,48,95,.16)" : "transparent",
+        enter: () => this.showEarlier(c.name, false),
+        leave: () => this.hideEarlier(false),
+        tap: (event) => this.tapEarlier(event, c.name)
+      })),
+      onMapClick: this.onMapClick,
+      hoverName: this.state.hoverName
+        ? this.state.hoverName + (COUNTRY_YEARS[this.state.hoverName] ? " · " + COUNTRY_YEARS[this.state.hoverName] : "")
+        : (early ? early.name + (early.year ? " · " + early.year : "") : null),
+      tipSub: !this.state.hoverName && early ? "Earlier foundation · no community today" : null,
+      tipLeft: tip.left,
+      tipTop: tip.top,
+      tipTransform: tip.transform,
       selected: this.state.selected,
       selectedLocations: (this.state.selected ? (LOCATIONS[this.state.selected] || []) : []).map(loc => ({
         name: loc,

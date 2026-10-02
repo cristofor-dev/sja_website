@@ -240,8 +240,12 @@ and the CDN on the next deploy without a hard refresh.
   requests). Drawn from Natural Earth 1:50m country boundaries (world-atlas@2
   `countries-50m.json`, public domain) in Mercator, cropped to lon −130…180
   and lat −47…72, Antarctica omitted. Sea `#e4effa`, borders `#9fc2e4`; the 24
-  countries of presence are filled in their region's blue, countries of earlier
-  foundations in `#b0d6f7`, every other country white. It stays vector because
+  countries of presence are filled in one deep blue `#004a9b`, countries of
+  earlier foundations in `#b0d6f7`, every other country white, so the map
+  reads exactly as its note says. (The handoff shaded presence by region, from
+  `#004a9b` to `#75c2ec`; the lightest were too close to the pale blue of
+  earlier foundations, so Australia read as "no community today".) The region
+  colours remain on the dots of the region list below. It stays vector because
   the map zooms to 6x. A marker's position in `js/map.js` is
   `x% = (lon + 130) / 310 * 100` and
   `y% = (m(72) − m(lat)) / (m(72) − m(−47)) * 100`, with

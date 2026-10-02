@@ -101,6 +101,16 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   pulled west into the sea off Israel's coast. Keyboard focus rings the dot or
   badge rather than the square hit box.
 
+  **Search on the map.** A round button at the map's top-right opens a field
+  that finds a country or a community by name as you type: accent-blind
+  ("peten" finds Petén), every word must match, and common names work too
+  (Palestine, UK, Britain, England, Burma). Up to eight matches drop below the
+  field, countries ranked above communities of equal standing; arrow keys move
+  through them and Enter picks one. A country zooms in as its marker would; a
+  community also opens its sheet. Escape, × or a tap elsewhere closes the
+  search without disturbing the map. The control is left out of the site's
+  search index.
+
   **Grouping adapts to the map's width.** A country carries its own marker as
   soon as its nearest neighbour is at least 26px away — the smallest hit box
   worth calling individually clickable. Below that, a numbered badge stands in

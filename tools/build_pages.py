@@ -864,7 +864,7 @@ def index_existing(label, filename, section):
     """Index a hand-built page (Home, Congregation, Where we are) from its HTML."""
     with open(os.path.join(DOCS, filename), encoding='utf-8') as f:
         soup = BeautifulSoup(f.read(), 'html.parser')
-    for junk in soup.select('header, nav, footer, script, style, .drawer'):
+    for junk in soup.select('header, nav, footer, script, style, .drawer, .map-search'):
         junk.decompose()
     text = re.sub(r'\s+', ' ', soup.get_text(' ', strip=True))
     SEARCH_INDEX.append({'t': label, 'u': filename, 's': section, 'h': '', 'x': text[:600]})

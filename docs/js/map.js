@@ -619,6 +619,193 @@
     el.sheetClose.focus();
   }
 
+  /* ── search: find a country or a community by name ──
+     Countries match their own name and the names people commonly use for
+     them; communities match their place name. Choosing a country zooms to it
+     as a marker would; choosing a community also opens its sheet. */
+
+  var SEARCH_ALIASES = {
+    'Palestinian Territories': ['Palestine'],
+    'United Kingdom': ['UK', 'Britain', 'Great Britain', 'England'],
+    'Myanmar': ['Burma']
+  };
+  var SEARCH_MAX = 8;
+  var searchIndex = null;
+  var searchHits = [];
+  var searchActive = -1;
+
+  function fold(s) {
+    return s.normalize ? s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase() : s.toLowerCase();
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function buildSearchIndex() {
+    var list = [];
+    REGIONS.forEach(function (r) {
+      r.items.filter(has).forEach(function (country) {
+        var n = LOCATIONS[country].length;
+        list.push({
+          kind: 'country', name: country, label: country,
+          where: r.label + ' · ' + n + (n === 1 ? ' community' : ' communities'),
+          keys: [country].concat(SEARCH_ALIASES[country] || []).map(fold)
+        });
+        LOCATIONS[country].forEach(function (loc) {
+          list.push({ kind: 'community', name: loc, country: country, label: loc,
+                      where: country, keys: [fold(loc)] });
+        });
+      });
+    });
+    return list;
+  }
+
+  /* every term must appear in one of the entry's names; a name that starts
+     with the query ranks first, then a word that does, and countries rank
+     above communities of equal standing */
+  function searchScore(entry, q, terms) {
+    var best = 0;
+    entry.keys.forEach(function (key) {
+      for (var i = 0; i < terms.length; i++) if (key.indexOf(terms[i]) < 0) return;
+      var s = 1;
+      if (key.indexOf(q) === 0) s = 4;
+      else if ((' ' + key).indexOf(' ' + terms[0]) > -1) s = 2;
+      best = Math.max(best, s);
+    });
+    return best ? best * 2 + (entry.kind === 'country' ? 1 : 0) : 0;
+  }
+
+  /* highlight the query terms in the label, matching accent-blind */
+  function markTerms(label, terms) {
+    var folded = '', at = [];
+    for (var i = 0; i < label.length; i++) {
+      var f = fold(label[i]);
+      for (var k = 0; k < f.length; k++) { folded += f[k]; at.push(i); }
+    }
+    var on = [];
+    terms.forEach(function (t) {
+      var from = 0, j;
+      while (t && (j = folded.indexOf(t, from)) > -1) {
+        for (var k = j; k < j + t.length; k++) on[at[k]] = true;
+        from = j + t.length;
+      }
+    });
+    var html = '', open = false;
+    for (var c = 0; c < label.length; c++) {
+      if (on[c] && !open) { html += '<mark>'; open = true; }
+      if (!on[c] && open) { html += '</mark>'; open = false; }
+      html += escapeHtml(label[c]);
+    }
+    return open ? html + '</mark>' : html;
+  }
+
+  function searchOpen() { return !el.searchBox.hidden; }
+
+  function openSearch() {
+    if (!searchIndex) searchIndex = buildSearchIndex();
+    el.searchOpen.hidden = true;
+    el.searchOpen.setAttribute('aria-expanded', 'true');
+    el.searchBox.hidden = false;
+    el.searchInput.value = '';
+    renderSearch();
+    el.searchInput.focus();
+  }
+
+  function closeSearch(refocus) {
+    if (!searchOpen()) return;
+    el.searchBox.hidden = true;
+    el.searchList.hidden = true;
+    el.searchInput.setAttribute('aria-expanded', 'false');
+    el.searchInput.removeAttribute('aria-activedescendant');
+    el.searchOpen.hidden = false;
+    el.searchOpen.setAttribute('aria-expanded', 'false');
+    searchHits = [];
+    searchActive = -1;
+    if (refocus) el.searchOpen.focus();
+  }
+
+  function renderSearch() {
+    var q = fold(el.searchInput.value.trim());
+    searchActive = -1;
+    el.searchInput.removeAttribute('aria-activedescendant');
+    if (!q) {
+      searchHits = [];
+      el.searchList.hidden = true;
+      el.searchInput.setAttribute('aria-expanded', 'false');
+      return;
+    }
+    var terms = q.split(/\s+/);
+    searchHits = searchIndex
+      .map(function (e) { return { e: e, s: searchScore(e, q, terms) }; })
+      .filter(function (h) { return h.s > 0; })
+      .sort(function (a, b) { return b.s - a.s || a.e.label.localeCompare(b.e.label); })
+      .slice(0, SEARCH_MAX)
+      .map(function (h) { return h.e; });
+
+    el.searchList.innerHTML = '';
+    if (!searchHits.length) {
+      el.searchList.innerHTML = '<div class="suggest__empty">No country or community matches “' +
+        escapeHtml(el.searchInput.value.trim()) + '”.</div>';
+    }
+    searchHits.forEach(function (e, i) {
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'suggest__item';
+      row.id = 'msg-' + i;
+      row.tabIndex = -1;
+      row.setAttribute('role', 'option');
+      row.innerHTML = '<span class="suggest__title">' + markTerms(e.label, terms) + '</span>' +
+        '<span class="suggest__where">' + escapeHtml(e.where) + '</span>';
+      row.addEventListener('click', function () { chooseSearch(e); });
+      el.searchList.appendChild(row);
+    });
+    el.searchList.hidden = false;
+    el.searchInput.setAttribute('aria-expanded', 'true');
+  }
+
+  function setSearchActive(n) {
+    var rows = el.searchList.querySelectorAll('.suggest__item');
+    if (!rows.length) return;
+    searchActive = (n + rows.length) % rows.length;
+    Array.prototype.forEach.call(rows, function (r, i) {
+      r.classList.toggle('is-active', i === searchActive);
+      r.setAttribute('aria-selected', i === searchActive ? 'true' : 'false');
+    });
+    rows[searchActive].scrollIntoView({ block: 'nearest' });
+    el.searchInput.setAttribute('aria-activedescendant', 'msg-' + searchActive);
+  }
+
+  function chooseSearch(entry) {
+    closeSearch(true);
+    if (entry.kind === 'country') {
+      selectCountry(entry.name);
+    } else {
+      selectCountry(entry.country);
+      openCommunity(entry.name);
+    }
+  }
+
+  function bindSearch() {
+    el.searchOpen.addEventListener('click', openSearch);
+    el.searchClose.addEventListener('click', function () { closeSearch(true); });
+    el.searchInput.addEventListener('input', renderSearch);
+    el.searchInput.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowDown') { event.preventDefault(); setSearchActive(searchActive + 1); }
+      else if (event.key === 'ArrowUp') { event.preventDefault(); setSearchActive(searchActive - 1); }
+      else if (event.key === 'Enter') {
+        event.preventDefault();
+        if (searchHits.length) chooseSearch(searchHits[searchActive > -1 ? searchActive : 0]);
+      }
+    });
+    /* a tap anywhere else closes the search without stealing that tap */
+    document.addEventListener('pointerdown', function (event) {
+      if (searchOpen() && !el.search.contains(event.target)) closeSearch(false);
+    });
+  }
+
   function measure() {
     var w = el.frame.clientWidth;
     if (w && w !== state.mapW) {
@@ -667,8 +854,16 @@
     el.sheetIntro = document.getElementById('sheetIntro');
     el.sheetClose = document.getElementById('sheetClose');
 
+    el.search = document.getElementById('mapSearch');
+    el.searchOpen = document.getElementById('mapSearchOpen');
+    el.searchBox = document.getElementById('mapSearchBox');
+    el.searchInput = document.getElementById('mapSearchInput');
+    el.searchClose = document.getElementById('mapSearchClose');
+    el.searchList = document.getElementById('mapSearchList');
+
     buildMarkers();
     buildRegions();
+    bindSearch();
 
     el.frame.addEventListener('pointerdown', onPointerDown);
     el.frame.addEventListener('pointermove', onPointerMove);
@@ -686,7 +881,8 @@
     });
     document.addEventListener('keydown', function (event) {
       if (event.key !== 'Escape') return;
-      if (state.community) closeCommunity();
+      if (searchOpen()) closeSearch(true);
+      else if (state.community) closeCommunity();
       else if (zoomed()) resetView();
     });
 

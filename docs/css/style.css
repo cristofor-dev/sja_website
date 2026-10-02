@@ -671,14 +671,137 @@ blockquote.quote cite {
 
 /* ── interactive map ── */
 
-.map-card { margin: 0 18px 18px; }
+.map-card {
+  position: relative;
+  margin: 0 18px 18px;
+  /* the search results drop below the map, over the note, so the card cannot
+     clip; the frame and the note round their own corners instead */
+  overflow: visible;
+}
 
 .map-frame {
   position: relative;
   overflow: hidden;
   background: #ffffff;
   touch-action: auto;
+  border-radius: 10px 10px 0 0;
 }
+
+/* search over the map: a round button that opens into a field, with the
+   matches listed below it (styled like the site search suggestions) */
+.map-search {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  left: 8px;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.map-search__open,
+.map-search__box,
+.map-search__list { pointer-events: auto; }
+
+/* on a wide map the open field keeps to the corner the button was in */
+.map-search__box,
+.map-search .map-search__list { max-width: 420px; margin-left: auto; }
+
+.map-search__open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--sja-900);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 49, 95, .35);
+}
+
+.map-search__open svg { fill: currentColor; }
+.map-search__open[hidden] { display: none; }
+
+.map-search__open:focus { outline: none; }
+.map-search__open:focus-visible { box-shadow: 0 0 0 3px #ffffff, 0 0 0 5px var(--sja-deep); }
+
+.map-search__box {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  background: #ffffff;
+  border-radius: 22px;
+  box-shadow: 0 4px 16px rgba(0, 49, 95, .35);
+}
+
+.map-search__box[hidden] { display: none; }
+
+.map-search__field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 4px 0 16px;
+  color: var(--sja-900);
+}
+
+.map-search__field svg { flex: none; fill: currentColor; }
+
+.map-search__field input {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 16px;   /* 16px keeps iOS from zooming the page on focus */
+  color: var(--ink);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.map-search__field input::-webkit-search-cancel-button { display: none; }
+
+.map-search__close {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--sja-900);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* .suggest is declared later in the sheet, so these overrides need the
+   extra class to win */
+.map-search .map-search__list {
+  left: 0;
+  right: 0;
+  max-height: min(320px, 60vh);
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+.map-search__list .suggest__item {
+  width: 100%;
+  border: 0;
+  background: #ffffff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-search__list .suggest__item:hover,
+.map-search__list .suggest__item.is-active { background: var(--tint); }
 
 .map-frame.is-zoomed { touch-action: none; cursor: grab; }
 .map-frame.is-dragging { cursor: grabbing; }
@@ -808,6 +931,7 @@ blockquote.quote cite {
 .map-tip[hidden] { display: none; }
 
 .map-note {
+  border-radius: 0 0 10px 10px;
   padding: 10px 14px 12px;
   font-size: 12px;
   line-height: 1.5;

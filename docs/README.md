@@ -106,7 +106,9 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   the Mediterranean group, the countries still crowded at its zoom (Israel,
   Palestine, Jordan, Lebanon on a phone; Israel and Palestine on a desktop) get
   a badge of their own, "Holy Land", which zooms in as far as it takes to set
-  them 26px apart (about 14x on a phone, 5x on a desktop). Selecting Malta or
+  them 26px apart (about 14x on a phone, 5x on a desktop). That view also keeps
+  the marker of every other country in frame (Cyprus, Syria… and on a desktop
+  Italy, Malta, Greece, Tunisia too), unless one is still crowded at that zoom. Selecting Malta or
   the Palestinian Territories zooms in until the territory is about 40px wide
   (up to 60x), so the marker is seen on it; where even that leaves the
   territory smaller than the marker (Malta on a phone), the selected marker is

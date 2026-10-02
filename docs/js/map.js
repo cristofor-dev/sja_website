@@ -285,12 +285,18 @@
       return CLUSTER_OF[name] === open.key && !sub[name];
     };
 
-    Object.keys(COUNTRY_POINTS).filter(has).forEach(function (name) {
+    /* zoomed into a group within a group, every other country in frame keeps
+       its marker too, unless it is still crowded at this zoom; the group's own
+       members are always shown, so they win any tie */
+    var live = Object.keys(COUNTRY_POINTS).filter(has);
+    var tightHere = open && open.parent ? crowdedAmong(live, v.s) : null;
+
+    live.forEach(function (name) {
       var p = COUNTRY_POINTS[name];
       var xy = at(p[0], p[1]);
       var grouped = CLUSTER_OF[name];
       var visible = onMap(xy) && (state.selected === name || inOpen(name) ||
-        (!grouped || !tight[name]) && !(open && open.parent));
+        (tightHere ? !tightHere[name] : !grouped || !tight[name]));
       list.push({ kind: 'pin', name: name, xy: xy, visible: visible });
     });
 

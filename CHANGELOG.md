@@ -97,3 +97,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 56. **No "Palestine" tag on the map (design + site build)**: the permanent name tag above the Palestinian Territories marker is gone; it dates from the old artwork, which neither drew nor named the territory. The marker now sits on the West Bank like any other, and hover or selection still names it. Malta keeps its tag.
 
 57. **No "Malta" tag either (design + site build)**: Malta's permanent name tag is gone too, so no marker carries one; the tag code (`UNLABELLED`, `.pin__label`) was removed from the site and the design file. Hover and selection still name every country.
+
+58. **Every marker in the Holy Land view (design + site build)**: zoomed into the Holy Land group, only its own countries had markers, so Cyprus, Syria, Lebanon, Jordan, Greece, Malta, Italy and Tunisia sat bare in frame. Every country in frame now keeps its marker, unless it is still crowded at that zoom; the group's own members always show, so they win any tie.

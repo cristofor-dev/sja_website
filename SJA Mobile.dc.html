@@ -302,7 +302,7 @@
               </button>
             </sc-for>
             <sc-for list="{{ clusterMarks }}" as="c" hint-placeholder-count="2">
-              <button type="button" class="sja-badge" onClick="{{ c.open }}" aria-label="{{ c.aria }}" style="position:absolute; left:{{ c.left }}; top:{{ c.top }}; width:{{ c.size }}; height:{{ c.size }}; margin:{{ c.offset }}; padding:0; border:0; background:transparent; cursor:pointer; display:{{ c.display }}; align-items:center; justify-content:center; z-index:3;">
+              <button type="button" class="sja-badge" onClick="{{ c.open }}" onMouseEnter="{{ c.enter }}" onMouseLeave="{{ c.leave }}" onFocus="{{ c.enter }}" onBlur="{{ c.leave }}" aria-label="{{ c.aria }}" style="position:absolute; left:{{ c.left }}; top:{{ c.top }}; width:{{ c.size }}; height:{{ c.size }}; margin:{{ c.offset }}; padding:0; border:0; background:transparent; cursor:pointer; display:{{ c.display }}; align-items:center; justify-content:center; z-index:3;">
                 <span style="display:flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:#004a9b; color:#ffffff; font-size:13px; font-weight:600; box-shadow:0 0 0 3px rgba(255,255,255,.95), 0 3px 8px rgba(0,49,95,.5);">{{ c.count }}</span>
               </button>
             </sc-for>
@@ -611,7 +611,7 @@ function searchParts(label, terms) {
 }
 
 class Component extends DCLogic {
-  state = { menuOpen: false, open: null, openFull: "Who we are", slide: 0, mapLoading: true, hoverName: null, hoverX: 0, hoverY: 0, selected: null, community: null, cluster: null, mapW: 390, pan: { x: 0, y: 0 }, dragging: false, searchOpen: false, searchQuery: "", searchActive: -1, earlier: null };
+  state = { menuOpen: false, open: null, openFull: "Who we are", slide: 0, mapLoading: true, hoverName: null, hoverX: 0, hoverY: 0, selected: null, community: null, cluster: null, mapW: 390, pan: { x: 0, y: 0 }, dragging: false, searchOpen: false, searchQuery: "", searchActive: -1, earlier: null, hoverBadge: null };
   mapContainerRef = React.createRef();
   searchRef = React.createRef();
   searchInputRef = React.createRef();
@@ -844,7 +844,13 @@ class Component extends DCLogic {
         size: hit + "px",
         offset: (-hit / 2) + "px 0 0 " + (-hit / 2) + "px",
         display: m.visible ? "flex" : "none",
-        open: () => { if (!this.dragged) this.openCluster(m.cluster.key); }
+        open: () => { if (!this.dragged) this.openCluster(m.cluster.key); },
+        // hover or keyboard focus spells out what the number counts
+        enter: () => this.setState({ hoverBadge: m.cluster.key }),
+        leave: () => { if (this.state.hoverBadge === m.cluster.key) this.setState({ hoverBadge: null }); },
+        key: m.cluster.key,
+        xy: m.xy,
+        shown: m.visible
       };
     });
 
@@ -894,7 +900,7 @@ class Component extends DCLogic {
 
   resetView = () => { this.setState({ selected: null, hoverName: null, community: null, cluster: null, pan: { x: 0, y: 0 }, earlier: null }); };
 
-  openCluster = (key) => { this.setState({ cluster: key, selected: null, hoverName: null, community: null, pan: { x: 0, y: 0 }, earlier: null }); };
+  openCluster = (key) => { this.setState({ cluster: key, selected: null, hoverName: null, community: null, pan: { x: 0, y: 0 }, earlier: null, hoverBadge: null }); };
 
   focusCountry = (name) => { if (!this.state.selected) this.setState({ hoverName: name }); };
 
@@ -923,20 +929,22 @@ class Component extends DCLogic {
     pt.s = v.s;
     const marks = this.buildMarkers(pt);
     const hovered = this.state.hoverName && COUNTRY_POINTS[this.state.hoverName] ? pt(this.state.hoverName) : null;
-    const early = this.state.earlier ? EARLIER.find(c => c.name === this.state.earlier.name) : null;
+    const badge = !hovered && this.state.hoverBadge ? marks.clusters.find(c => c.key === this.state.hoverBadge && c.shown) : null;
+    const early = !badge && this.state.earlier ? EARLIER.find(c => c.name === this.state.earlier.name) : null;
+    const twoLine = !hovered && (!!badge || !!early);
     // the frame clips what overflows it, so keep the label inside: pin it to
     // an edge when its point is near one, and drop it below the point near the top
     const tip = (() => {
-      const at = hovered || (early ? pt.at(early.x, early.y) : null);
+      const at = hovered || (badge ? badge.xy : (early ? pt.at(early.x, early.y) : null));
       if (!at) return { left: "50%", top: "50%", transform: "translate(-50%,-160%)" };
       const w = this.state.mapW, h = w * MAP_RATIO;
       const x = at[0] / 100 * w, y = at[1] / 100 * h;
-      const half = early && !hovered ? 115 : 80;
-      const below = y < (early && !hovered ? 56 : 50);
+      const half = twoLine ? 115 : 80;
+      const below = y < (twoLine ? 56 : 50);
       const tx = x < half ? "0" : (x > w - half ? "-100%" : "-50%");
       const left = x < half ? 4 : (x > w - half ? w - 4 : x);
       return { left: left + "px", top: y + "px",
-        transform: "translate(" + tx + "," + (below ? "14px" : (early && !hovered ? "calc(-100% - 12px)" : "-160%")) + ")" };
+        transform: "translate(" + tx + "," + (below ? "14px" : (twoLine ? "calc(-100% - 12px)" : "-160%")) + ")" };
     })();
     const found = searchFind(this.state.searchQuery);
     return {
@@ -1016,8 +1024,10 @@ class Component extends DCLogic {
       onMapClick: this.onMapClick,
       hoverName: this.state.hoverName
         ? this.state.hoverName + (COUNTRY_YEARS[this.state.hoverName] ? " · " + COUNTRY_YEARS[this.state.hoverName] : "")
-        : (early ? early.name + (early.year ? " · " + early.year : "") : null),
-      tipSub: !this.state.hoverName && early ? "Earlier foundation · no community today" : null,
+        : (badge ? badge.count + (badge.count === 1 ? " country" : " countries")
+          : (early ? early.name + (early.year ? " · " + early.year : "") : null)),
+      tipSub: this.state.hoverName ? null
+        : (badge ? badge.label : (early ? "Earlier foundation · no community today" : null)),
       tipLeft: tip.left,
       tipTop: tip.top,
       tipTransform: tip.transform,

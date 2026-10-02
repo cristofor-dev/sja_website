@@ -927,8 +927,8 @@ blockquote.quote cite {
 
 .map-tip[hidden] { display: none; }
 
-/* a country of an earlier foundation: name and year, then a quieter line */
-.map-tip--earlier { transform: translate(-50%, calc(-100% - 12px)); text-align: center; }
+/* a label with a quieter second line: an earlier foundation, or what a group badge counts */
+.map-tip--two-line { transform: translate(-50%, calc(-100% - 12px)); text-align: center; }
 .map-tip__sub { display: block; font-size: 11px; font-weight: 400; opacity: .8; }
 .map-tip.map-tip--below { transform: translate(-50%, 14px); }
 

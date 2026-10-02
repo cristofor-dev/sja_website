@@ -144,6 +144,8 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   soon as its nearest neighbour is at least 26px away — the smallest hit box
   worth calling individually clickable. Below that, a numbered badge stands in
   for the countries still crowded, and its count and chooser list exactly those.
+  Hovering a badge, or giving it keyboard focus, spells the number out in a
+  label above it ("7 countries", with the group's name beneath).
   So a phone shows 9 markers and all four badges, as designed; a 1044px desktop
   map shows 17 individual markers and keeps one badge, for seven of the
   Mediterranean & Holy Land (Malta, Cyprus, Syria, Lebanon, Israel, Palestine,

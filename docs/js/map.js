@@ -233,6 +233,7 @@
     cluster: null,
     community: null,
     earlier: null,          /* { name, pinned } — the earlier foundation shown */
+    hoverBadge: null,       /* key of the group badge under the pointer or focus */
     mapW: 390,
     pan: { x: 0, y: 0 },
     dragging: false
@@ -375,6 +376,7 @@
 
   function openCluster(key) {
     state.earlier = null;
+    state.hoverBadge = null;
     state.cluster = key;
     state.selected = null;
     state.hoverName = null;
@@ -489,6 +491,13 @@
       btn.addEventListener('click', function () {
         if (!dragged) openCluster(c.key);
       });
+      /* hover or keyboard focus spells out what the number counts */
+      var on = function () { state.hoverBadge = c.key; render(); };
+      var off = function () { if (state.hoverBadge === c.key) { state.hoverBadge = null; render(); } };
+      btn.addEventListener('mouseenter', on);
+      btn.addEventListener('focus', on);
+      btn.addEventListener('mouseleave', off);
+      btn.addEventListener('blur', off);
       el.marks.appendChild(btn);
       badgeEls[c.key] = btn;
       badgeCountEls[c.key] = count;
@@ -583,7 +592,7 @@
     var tw = el.tip.offsetWidth, th = el.tip.offsetHeight;
     var x = xPct / 100 * fw, y = yPct / 100 * fh;
     x = Math.max(tw / 2 + 4, Math.min(fw - tw / 2 - 4, x));
-    var above = el.tip.classList.contains('map-tip--earlier') ? th + 12 : th * 1.6;
+    var above = el.tip.classList.contains('map-tip--two-line') ? th + 12 : th * 1.6;
     el.tip.classList.toggle('map-tip--below', y - above < 4);
     el.tip.style.left = x + 'px';
     el.tip.style.top = y + 'px';
@@ -628,14 +637,28 @@
 
     /* tooltip */
     var name = state.hoverName;
-    var early = !name && state.earlier ? earlierByName(state.earlier.name) : null;
-    el.tip.classList.toggle('map-tip--earlier', !!early);
+    var badge = null;
+    if (!name && state.hoverBadge) {
+      g.list.forEach(function (m) {
+        if (m.kind === 'cluster' && m.visible && m.cluster.key === state.hoverBadge) badge = m;
+      });
+    }
+    var early = !name && !badge && state.earlier ? earlierByName(state.earlier.name) : null;
+    el.tip.classList.toggle('map-tip--two-line', !!early || !!badge);
     if (name && COUNTRY_POINTS[name]) {
       var p = COUNTRY_POINTS[name];
       var year = COUNTRY_YEARS[name];
       el.tip.hidden = false;
       el.tip.textContent = year ? name + ' · ' + year : name;
       placeTip(v.tx + v.s * p[0], v.ty + v.s * p[1]);
+    } else if (badge) {
+      el.tip.hidden = false;
+      el.tip.textContent = badge.count + (badge.count === 1 ? ' country' : ' countries');
+      var group = document.createElement('span');
+      group.className = 'map-tip__sub';
+      group.textContent = badge.cluster.label;
+      el.tip.appendChild(group);
+      placeTip(badge.xy[0], badge.xy[1]);
     } else if (early) {
       el.tip.hidden = false;
       el.tip.textContent = early.year ? early.name + ' · ' + early.year : early.name;

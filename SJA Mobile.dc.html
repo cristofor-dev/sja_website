@@ -298,7 +298,6 @@
             <sc-for list="{{ pins }}" as="p" hint-placeholder-count="24">
               <button type="button" class="sja-pin" onClick="{{ p.select }}" onMouseEnter="{{ p.focus }}" onMouseLeave="{{ p.blur }}" aria-label="{{ p.name }}" style="position:absolute; left:{{ p.left }}; top:{{ p.top }}; width:{{ p.size }}; height:{{ p.size }}; margin:{{ p.offset }}; padding:0; border:0; background:transparent; cursor:pointer; display:{{ p.display }}; align-items:center; justify-content:center; z-index:4;">
                 <span style="display:block; width:{{ p.dot }}; height:{{ p.dot }}; border-radius:50%; background:{{ p.bg }}; box-shadow:{{ p.shadow }}; transition:all .18s ease;"></span>
-                <span style="display:{{ p.labelShow }}; position:absolute; left:50%; top:50%; transform:translate(-50%,calc(-100% - 11px)); padding:1px 5px; background:rgba(255,255,255,.9); border-radius:3px; font-size:11px; font-weight:600; line-height:1.4; color:#00305f; white-space:nowrap; pointer-events:none;">{{ p.label }}</span>
               </button>
             </sc-for>
             <sc-for list="{{ clusterMarks }}" as="c" hint-placeholder-count="2">
@@ -512,8 +511,6 @@ const CLUSTER_OF = {};   // country → its top-level group
 CLUSTERS.forEach(c => { if (!c.parent) c.members.forEach(m => { CLUSTER_OF[m] = c.key; }); });
 const clusterByKey = (key) => CLUSTERS.find(c => c.key === key) || null;
 const UNGROUP_MIN_PX = 26;
-
-const UNLABELLED = { "Malta": "Malta" };
 
 // territories too small to see at a country's own zoom: selecting one zooms in
 // until it is about SMALL_TARGET_PX wide on screen (widths in the artwork's
@@ -816,8 +813,6 @@ class Component extends DCLogic {
       const hit = m.hit || 18;
       return {
         name: m.name,
-        label: UNLABELLED[m.name] || "",
-        labelShow: UNLABELLED[m.name] ? "block" : "none",
         left: m.xy[0] + "%",
         top: m.xy[1] + "%",
         size: hit + "px",

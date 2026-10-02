@@ -95,3 +95,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 55. **Group badges say what they count (design + site build)**: hovering a group badge, or reaching it with the keyboard, shows a label above it — "7 countries" (or "1 country"), with the group's name on a quieter second line ("Mediterranean & Holy Land", "Holy Land"…). The badges themselves still show only the number; the label goes as soon as the pointer or focus leaves, and opening the group clears it.
 
 56. **No "Palestine" tag on the map (design + site build)**: the permanent name tag above the Palestinian Territories marker is gone; it dates from the old artwork, which neither drew nor named the territory. The marker now sits on the West Bank like any other, and hover or selection still names it. Malta keeps its tag.
+
+57. **No "Malta" tag either (design + site build)**: Malta's permanent name tag is gone too, so no marker carries one; the tag code (`UNLABELLED`, `.pin__label`) was removed from the site and the design file. Hover and selection still name every country.

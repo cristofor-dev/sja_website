@@ -99,9 +99,6 @@
     return null;
   }
 
-  /* the smallest territories get a name label beside their marker */
-  var UNLABELLED = { 'Malta': 'Malta' };
-
   /* Territories too small to see at a country's own zoom: selecting one zooms
      in until it is about SMALL_TARGET_PX wide on screen, so its marker is seen
      to sit on it. Widths are in the artwork's 1600px space. */
@@ -459,13 +456,6 @@
       var dot = document.createElement('span');
       dot.className = 'pin__dot';
       btn.appendChild(dot);
-
-      if (UNLABELLED[name]) {
-        var lab = document.createElement('span');
-        lab.className = 'pin__label';
-        lab.textContent = UNLABELLED[name];
-        btn.appendChild(lab);
-      }
 
       btn.addEventListener('click', function () {
         if (dragged) return;

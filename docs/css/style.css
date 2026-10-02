@@ -726,6 +726,11 @@ blockquote.quote cite {
 .pin { z-index: 4; }
 .badge { z-index: 3; }
 
+/* the hit box is invisible, so keyboard focus rings the dot or badge itself
+   rather than the square hit area */
+.pin:focus,
+.badge:focus { outline: none; }
+
 .pin__dot {
   display: block;
   width: 11px;
@@ -741,6 +746,14 @@ blockquote.quote cite {
   height: 17px;
   background: var(--sja-deep);
   box-shadow: 0 0 0 5px rgba(255, 255, 255, .95), 0 2px 6px rgba(0, 49, 95, .45);
+}
+
+.pin:focus-visible .pin__dot {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .95), 0 0 0 5px var(--sja-deep), 0 2px 6px rgba(0, 49, 95, .45);
+}
+
+.pin.is-active:focus-visible .pin__dot {
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, .95), 0 0 0 7px var(--sja-deep), 0 2px 6px rgba(0, 49, 95, .45);
 }
 
 .pin__label {
@@ -771,6 +784,10 @@ blockquote.quote cite {
   font-size: 13px;
   font-weight: 600;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, .95), 0 3px 8px rgba(0, 49, 95, .5);
+}
+
+.badge:focus-visible .badge__count {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .95), 0 0 0 5px var(--sja-deep), 0 3px 8px rgba(0, 49, 95, .5);
 }
 
 .map-tip {

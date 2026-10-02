@@ -89,8 +89,10 @@
   /* the smallest territories get a name label beside their marker */
   var UNLABELLED = { 'Malta': 'Malta', 'Palestinian Territories': 'Palestine' };
 
-  /* marker offset in screen px, drawn with a leader line back to the true point */
-  var NUDGE = { 'Palestinian Territories': [34, 20] };
+  /* marker offset in screen px, drawn with a leader line back to the true point.
+     Palestine sits 3px from Israel at world zoom, so once its group is open it
+     is pulled west into the sea, clear of Israel, Jordan and Lebanon. */
+  var NUDGE = { 'Palestinian Territories': [-30, -8] };
 
   var MAP_RATIO = 820.43 / 1600;
 
@@ -109,12 +111,10 @@
   function crowded() {
     var w = state.mapW, h = w * MAP_RATIO;
     var live = Object.keys(COUNTRY_POINTS).filter(has);
+    /* true positions, not nudged ones: a nudge separates a marker from its
+       neighbour inside an open group, it must not lift it out of the group */
     var pos = {};
-    live.forEach(function (name) {
-      var p = COUNTRY_POINTS[name];
-      var n = NUDGE[name];
-      pos[name] = n ? [p[0] + n[0] / w * 100, p[1] + n[1] / h * 100] : [p[0], p[1]];
-    });
+    live.forEach(function (name) { pos[name] = COUNTRY_POINTS[name]; });
     var tight = {};
     live.forEach(function (a) {
       var nearest = Infinity;

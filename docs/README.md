@@ -97,16 +97,20 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   highlight with a tooltip carrying the foundation year, per-country zoom,
   drag-to-pan and double-tap-to-reset while zoomed, the communities panel, the
   community sheet, and the region chips. Hit areas are sized from the nearest visible marker (12–44px) so no marker can
-  swallow a neighbour's tap; Palestine keeps its offset marker and leader line.
+  swallow a neighbour's tap; Palestine keeps its offset marker and leader line,
+  pulled west into the sea off Israel's coast. Keyboard focus rings the dot or
+  badge rather than the square hit box.
 
   **Grouping adapts to the map's width.** A country carries its own marker as
   soon as its nearest neighbour is at least 26px away — the smallest hit box
   worth calling individually clickable. Below that, a numbered badge stands in
   for the countries still crowded, and its count and chooser list exactly those.
   So a phone shows 9 markers and all four badges, as designed; a 1044px desktop
-  map shows 16 individual markers and keeps two badges: Britain & Ireland, and
-  six of the Mediterranean & Holy Land (Malta, Cyprus, Syria, Lebanon, Israel,
-  Jordan — the Levant coast is only a few pixels deep even there). Crowding is
+  map shows 15 individual markers and keeps two badges: Britain & Ireland, and
+  seven of the Mediterranean & Holy Land (Malta, Cyprus, Syria, Lebanon, Israel,
+  Palestine, Jordan — the Levant coast is only a few pixels deep even there).
+  Crowding uses each country's true position, never its nudged one, so
+  Palestine (3px from Israel) always sits in the group at world zoom. Crowding is
   measured at world zoom, so the set depends only on width, not on what is
   open; a resize that spreads an open group apart returns to the world view
   rather than stranding its chooser. The region chips stay the 44px path to
@@ -115,9 +119,9 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   | map width | individual markers | group badges |
   | --- | --- | --- |
   | 390px (phone) | 9 | 4 |
-  | 684px | 13 | 3 |
-  | 968px | 14 | 3 |
-  | 1044px (desktop) | 16 | 2 |
+  | 684px | 12 | 3 |
+  | 968px | 13 | 3 |
+  | 1044px (desktop) | 15 | 2 |
 
   **Selecting a country brings the map to the top of the viewport**, since the
   communities panel opens below the map and would otherwise start off the

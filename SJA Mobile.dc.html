@@ -345,7 +345,7 @@
           <ul aria-label="Map key" style="display:flex; flex-wrap:wrap; gap:8px 16px; margin:0; padding:10px 14px 0; list-style:none; background:#f4f9fe; border-top:1px solid rgba(0,49,95,.1); font-size:12px; color:#00305f;">
             <li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="width:16px; height:11px; border-radius:2px; background:#004a9b; box-shadow:inset 0 0 0 1px rgba(0,49,95,.2);"></span>Communities today</li>
             <li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="width:16px; height:11px; border-radius:2px; background:#b0d6f7; box-shadow:inset 0 0 0 1px rgba(0,49,95,.2);"></span>Earlier foundations</li>
-            <li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="width:9px; height:9px; margin:0 2px; border-radius:50%; background:#004a9b; box-shadow:0 0 0 2px #ffffff, 0 1px 4px rgba(0,49,95,.45);"></span>Country</li>
+            <li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="width:9px; height:9px; margin:0 2px; border-radius:50%; background:#046bd2; box-shadow:0 0 0 2px #ffffff, 0 1px 4px rgba(0,49,95,.45);"></span>Country</li>
             <sc-if value="{{ legendGroup }}" hint-placeholder-val="{{ 3 }}"><li style="display:flex; align-items:center; gap:6px;"><span aria-hidden="true" style="display:flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:#046bd2; color:#ffffff; font-size:10px; font-weight:600; box-shadow:0 0 0 2px #ffffff, 0 1px 4px rgba(0,49,95,.45);">{{ legendGroup }}</span>Group of countries</li></sc-if>
           </ul>
           <div style="padding:10px 14px 12px; font-size:12px; line-height:1.5; color:#475569; background:#f4f9fe; border-radius:0 0 10px 10px;">Hover or tap a pale-blue country for its name and year. The year shown on selection is the first foundation in that country. Tap a marker to see the communities there today; use + and − (or pinch) to zoom; when zoomed in, drag to move the map and double-tap to return to the world.</div>
@@ -886,9 +886,9 @@ class Component extends DCLogic {
         offset: (-hit / 2) + "px 0 0 " + (-hit / 2) + "px",
         display: m.visible ? "flex" : "none",
         dot: ring ? "36px" : (active ? "17px" : "11px"),
-        bg: ring || hollow ? "transparent" : (active ? "#00305f" : "#004a9b"),
+        bg: ring || hollow ? "transparent" : (active ? "#00305f" : "#046bd2"),
         shadow: ring ? "inset 0 0 0 3px #00305f, 0 0 0 2px rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.35)"
-          : (hollow ? "inset 0 0 0 2px #004a9b, 0 0 0 3px rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45)"
+          : (hollow ? "inset 0 0 0 2px #046bd2, 0 0 0 3px rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45)"
           : "0 0 0 " + (active ? "5px" : "3px") + " rgba(255,255,255,.95), 0 2px 6px rgba(0,49,95,.45)"),
         select: () => { if (this.dragged) return; if (this.state.selected === m.name) this.resetView(); else this.selectCountry(m.name); },
         focus: () => this.focusCountry(m.name),

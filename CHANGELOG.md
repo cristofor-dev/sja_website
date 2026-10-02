@@ -107,3 +107,5 @@ Tracks changes to `SJA Mobile.dc.html`, a mobile-first, classic-UI recreation of
 61. **Live count in the map key (design + site build)**: the key's group badge no longer shows a fixed 3; it carries the count of the largest group badge on the map at that moment (7 on a phone's world view, falling as you zoom in), and the "Group of countries" entry leaves the key while no group badge is shown (a country selected, or zoomed in far enough that every group has split).
 
 62. **Group badges in their own blue (design + site build)**: group badges, on the map and in the key, are now filled with the brighter palette blue #046bd2 instead of the country markers' #004a9b, so a group never reads as a single country. White on #046bd2 keeps a 5:1 contrast for the count.
+
+63. **Country markers match the group badges (design + site build)**: country markers (the dot, the hollow ring and the key's dot) now use the same brighter blue #046bd2 as the group badges; a hovered or selected marker still turns deep #00305f.

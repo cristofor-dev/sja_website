@@ -41,9 +41,11 @@
   };
 
   /* [x%, y%, zoomScale] — lon/lat projected onto assets/world-map-blue.svg
-     (Mercator, lon -130..180, lat -47..72, 1600x820.4), so every marker sits on its own country */
+     (Mercator, lon -130..180, lat -47..72, 1600x820.4), so every marker sits on its own country.
+     The UK (Grantham, 0.6°W 52.9°N) and Ireland (Tuam, 9.0°W 53.5°N) sit towards
+     their far sides so that a full-width map can show them apart (26px+). */
   var COUNTRY_POINTS = {
-    'France': [42.74, 33.21, 4], 'United Kingdom': [41.42, 27.37, 4.4], 'Ireland': [39.35, 26.75, 5],
+    'France': [42.74, 33.21, 4], 'United Kingdom': [41.74, 27.06, 4.4], 'Ireland': [39.03, 26.43, 5],
     'Italy': [46.0, 36.49, 4], 'Malta': [46.59, 42.19, 4], 'Greece': [49.03, 39.41, 4.5],
     'Cyprus': [52.61, 42.93, 6], 'Romania': [49.97, 33.84, 4.2],
     'Tunisia': [44.97, 43.42, 4.5], 'Ethiopia': [54.68, 60.93, 3.6],

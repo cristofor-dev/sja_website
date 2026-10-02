@@ -134,9 +134,11 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   worth calling individually clickable. Below that, a numbered badge stands in
   for the countries still crowded, and its count and chooser list exactly those.
   So a phone shows 9 markers and all four badges, as designed; a 1044px desktop
-  map shows 15 individual markers and keeps two badges: Britain & Ireland, and
-  seven of the Mediterranean & Holy Land (Malta, Cyprus, Syria, Lebanon, Israel,
-  Palestine, Jordan — the Levant coast is only a few pixels deep even there).
+  map shows 17 individual markers and keeps one badge, for seven of the
+  Mediterranean & Holy Land (Malta, Cyprus, Syria, Lebanon, Israel, Palestine,
+  Jordan — the Levant coast is only a few pixels deep even there). The UK and
+  Ireland markers sit towards their far sides (Grantham and Tuam) so that from
+  968px up they are 26px apart and stand alone; narrower, they share a badge.
   Crowding uses each country's true position, never its nudged one, so
   Palestine (3px from Israel) always sits in the group at world zoom. Crowding is
   measured at world zoom, so the set depends only on width, not on what is
@@ -148,8 +150,8 @@ To preview locally: `python3 -m http.server 8000` then open <http://localhost:80
   | --- | --- | --- |
   | 390px (phone) | 9 | 4 |
   | 684px | 12 | 3 |
-  | 968px | 13 | 3 |
-  | 1044px (desktop) | 15 | 2 |
+  | 968px | 15 | 2 |
+  | 1044px (desktop) | 17 | 1 |
 
   **Selecting a country brings the map to the top of the viewport**, since the
   communities panel opens below the map and would otherwise start off the

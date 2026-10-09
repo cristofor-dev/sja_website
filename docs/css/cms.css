@@ -1,0 +1,29 @@
+/* Pages and posts written in the admin area (served by functions/). Loaded on top of style.css. */
+
+.cms-prose { font-size: 16px; line-height: 1.65; color: var(--ink); }
+.cms-prose p { margin: 0 0 14px; }
+.cms-prose img { display: block; max-width: 100%; height: auto; border-radius: 6px; }
+.cms-prose figure { margin: 0 0 18px; }
+.cms-prose figcaption { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.cms-prose hr { border: 0; height: 2px; background: var(--sja-300); width: 64px; margin: 24px 0; }
+.cms-prose pre { overflow-x: auto; padding: 12px 14px; background: var(--tint); border-radius: 6px; font-size: 14px; }
+.cms-prose code { font-size: .92em; }
+.cms-prose a { word-break: break-word; }
+
+.cms-video { position: relative; aspect-ratio: 16 / 9; margin: 0 0 18px; border-radius: 6px; overflow: hidden; background: #000; }
+.cms-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+.cms-cover { margin: 0 0 18px; }
+.cms-cover img { display: block; width: 100%; height: auto; border-radius: 6px; }
+
+.cms-date { margin: 0 0 14px; }
+
+.cms-preview {
+  margin: 0 0 16px; padding: 10px 14px; border-radius: 6px;
+  background: #fff7e0; color: #7a5200; font-size: 14px; font-weight: 600;
+}
+
+.cms-post__cover { display: block; width: calc(100% + 32px); max-width: none; margin: -14px -16px 12px; height: auto; }
+.cms-post .cms-post__excerpt { margin: 6px 0 0; font-size: 15px; color: var(--muted); }
+
+.cms-pager { display: flex; justify-content: space-between; margin: 20px 0 0; font-size: 15px; }

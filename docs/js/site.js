@@ -45,6 +45,7 @@
       ['Hymn of the General Chapter 2025', 'hymn-of-the-general-chapter-2025.html'],
       ['Other useful weblinks', 'other-useful-weblinks.html']
     ] },
+    { label: 'Blog', href: '/blog', children: [] },
     { label: 'Contact', href: 'contact.html', children: [] },
     { label: 'Members', href: 'members.html', children: [
       ['Archives', 'http://gilse.emiliedevialar.org:8090/SJA/edv_en.html'],
@@ -155,6 +156,22 @@
     drawer.appendChild(lang);
   }
 
+  /* Pages written in the admin area and flagged "show in menu" arrive from the
+     backend; they are listed under the Blog entry. On a purely static host the
+     request fails and the drawer stays as it is. */
+  function loadCmsPages(drawer) {
+    fetch('/api/nav', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (pages) {
+        if (!Array.isArray(pages) || !pages.length) return;
+        var more = NAV.filter(function (n) { return n.label === 'Blog'; })[0];
+        more.children = pages.map(function (p) { return [p.label, p.href]; });
+        drawer.innerHTML = '';
+        buildDrawer(drawer);
+      })
+      .catch(function () {});
+  }
+
   function buildFooter(host) {
     FOOTER_LINKS.forEach(function (pair) {
       var label = pair[0], href = pair[1];
@@ -183,6 +200,8 @@
         drawer.hidden = open;
       });
     }
+
+    if (drawer && window.fetch) loadCmsPages(drawer);
 
     var footers = document.querySelectorAll('[data-footer-links]');
     Array.prototype.forEach.call(footers, buildFooter);

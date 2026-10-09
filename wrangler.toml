@@ -1,0 +1,14 @@
+# Cloudflare Pages project: static site in docs/, server code in functions/.
+# Create the resources first (see ADMIN.md), then paste the D1 id.
+name = "sja-website"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "docs"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sja-cms"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "sja-media"

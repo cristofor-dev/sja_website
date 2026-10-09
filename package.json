@@ -1,0 +1,13 @@
+{
+  "name": "sja-website",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev docs --port 8788",
+    "db:local": "wrangler d1 migrations apply sja-cms --local",
+    "db:remote": "wrangler d1 migrations apply sja-cms --remote",
+    "deploy": "wrangler pages deploy docs --project-name sja-website"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}
